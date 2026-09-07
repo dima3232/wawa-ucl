@@ -8,3 +8,5 @@ README.md
 fixtures
 fixtures2025
 fixtures2026
+.wrangler
+node_modules

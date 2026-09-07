@@ -2,3 +2,5 @@ fixtures
 fixtures2025
 fixtures2026
 .claude/
+.wrangler/
+node_modules/
