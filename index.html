@@ -77,8 +77,6 @@
   .day-h.focus{border-bottom:2px solid var(--gold);box-shadow:0 2px 0 rgba(244,198,74,.25)}
   .srow{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid #1b243f;border-radius:9px;cursor:pointer}
   .srow:hover{background:rgba(91,140,255,.06)}
-  .srow.pub{box-shadow:inset 3px 0 0 var(--green);background:linear-gradient(90deg,rgba(63,208,125,.07),transparent)}
-  .srow.pub .time small{color:var(--green)}
   .srow.today{background:linear-gradient(90deg,rgba(255,107,107,.10),transparent);border:1px solid #4a2740}
   .srow.live{background:linear-gradient(90deg,rgba(255,107,107,.18),transparent);border:1px solid var(--red)}
   .srow.live .time{color:var(--red);font-size:13px;letter-spacing:.5px}
@@ -94,6 +92,19 @@
   .srow .tm.w .sc,.srow .tm.w .nm{color:var(--gold)}
   .srow .tm.l{opacity:.55}
   .badge-live{color:#fff;background:var(--red);border-radius:4px;padding:0 5px;font-weight:700;font-size:9px;letter-spacing:.5px}
+  /* оцінка «наскільки вартий перегляду»: 1–10 */
+  .heat{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:44px}
+  .heat b{font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+  .heat small{font-size:9px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;opacity:.85}
+  .heat.h4{color:#ff7847} .heat.h3{color:var(--gold)} .heat.h2{color:#7f8db5} .heat.h1{color:#4d5675}
+  .srow.hot{background:linear-gradient(90deg,rgba(255,120,71,.10),transparent);box-shadow:inset 3px 0 0 #ff7847}
+  .filt{display:flex;gap:6px;justify-content:center;margin:0 0 10px}
+  .filt button{all:unset;cursor:pointer;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;
+    color:var(--dim);background:#0e1530;border:1px solid #20294a}
+  .filt button.on{color:#0b1020;background:var(--gold);border-color:var(--gold)}
+  .m-heat{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 12px;font-size:13px;color:var(--dim)}
+  .m-heat b{font-size:20px;font-weight:900}
+  .m-heat.h4 b{color:#ff7847} .m-heat.h3 b{color:var(--gold)} .m-heat.h2 b{color:#7f8db5} .m-heat.h1 b{color:#4d5675}
 
   /* ===== ПЛЕЙ-ОФ (пари у два матчі) ===== */
   .round-tabs{position:sticky;top:var(--hh,52px);z-index:20;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
@@ -227,6 +238,7 @@
   </div>
   <div id="view-sc" class="view">
     <div class="legend" id="leg-sc"></div>
+    <div class="filt" id="sched-filt"></div>
     <div id="sched" class="sched"></div>
   </div>
   <div id="view-ko" class="view">
@@ -270,7 +282,10 @@ const I18N={
     loading:"завантаження…", updated:x=>"оновлено "+x, updateError:"помилка оновлення",
     loadErr:e=>`<div class="err">Не вдалося завантажити дані: ${e}</div>`,
     legTable:"Швейцарська система: 36 команд, у кожної 8 різних суперників",
-    legPub:"🍺 вечір (17:00–23:59) — зручно в паб", legClick:"клік — деталі матчу",
+    legClick:"клік — деталі матчу",
+    hot4:"топ", hot3:"варто", hot2:"норм", hot1:"прохідний",
+    fAll:"Усі матчі", fHot:"🔥 Тільки цікаві", noHot:"Цікавих матчів у цьому списку немає.",
+    heatLbl:"Вартий перегляду:", legHeat:"оцінка 1–10 — наскільки матч вартий перегляду",
     legTime:z=>`час у твоєму поясі (${z})`, legLive:"LIVE — матч триває",
     legKo:"Пари плей-оф — у два матчі, показано суму",
     z1:"1–8 → одразу 1/8 фіналу", z2:"9–24 → раунд плей-оф", z3:"25–36 → виліт",
@@ -302,7 +317,10 @@ const I18N={
     loading:"loading…", updated:x=>"updated "+x, updateError:"update failed",
     loadErr:e=>`<div class="err">Could not load data: ${e}</div>`,
     legTable:"Swiss model: 36 teams, each plays 8 different opponents",
-    legPub:"🍺 evening (17:00–23:59) — good for the pub", legClick:"click for match details",
+    legClick:"click for match details",
+    hot4:"must-see", hot3:"worth it", hot2:"decent", hot1:"skippable",
+    fAll:"All matches", fHot:"🔥 Best only", noHot:"No stand-out matches in this list.",
+    heatLbl:"Worth watching:", legHeat:"1–10 rating — how much the match is worth watching",
     legTime:z=>`times in your zone (${z})`, legLive:"LIVE — match in progress",
     legKo:"Knockout ties are two-legged; aggregate shown",
     z1:"1–8 → straight to Round of 16", z2:"9–24 → knockout play-off", z3:"25–36 → eliminated",
@@ -336,9 +354,43 @@ function mDate(m){ return m.ts? new Date(m.ts) : null; }
 function fmtTime(dt){ return dt? dt.toLocaleTimeString(locale(),{timeZone:TZ,hour:"2-digit",minute:"2-digit"}) : ""; }
 function dayKey(dt){ return dt? dt.toLocaleDateString("sv-SE",{timeZone:TZ}) : ""; }
 function dayLabel(dt){ return dt? dt.toLocaleDateString(locale(),{timeZone:TZ,weekday:"long",day:"2-digit",month:"long"}) : ""; }
-function hourIn(dt){ return dt? +dt.toLocaleTimeString("en-GB",{timeZone:TZ,hour:"2-digit",hour12:false}).slice(0,2) : -1; }
-function isPubTime(dt){ const h=hourIn(dt); return h>=17&&h<=23; }
 function isToday(dt){ return dt && dayKey(dt)===dayKey(new Date()); }
+
+// набір слів назви (регістр/порядок неважливі) — для звірки назв команд
+const tokset=s=>((s||"").toLowerCase().match(/[a-zа-яіїєґ]+/gi)||[]).sort().join(" ");
+const pairKey=(a,b)=>[tokset(a),tokset(b)].sort().join("|");
+
+// ================== наскільки матч вартий перегляду ==================
+// Базовий «клас» клубу 1–10: статус у Європі, склад, і наскільки за ним цікаво стежити.
+// Значення суб'єктивні за визначенням — це редакційна шкала, її легко правити руками.
+const TEAM_RATING={
+  "Real Madrid":10,"Bayern Munich":10,"Barcelona":10,"Manchester City":10,"Liverpool":10,"Paris Saint Germain":10,
+  "Arsenal":9,"Inter":9,"Atlético Madrid":9,
+  "Manchester United":8,"Napoli":8,"Borussia Dortmund":8,"AS Roma":8,
+  "Sporting CP":7,"FC Porto":7,"RB Leipzig":7,"Aston Villa":7,"Villarreal":7,
+  "Galatasaray":6,"Fenerbahce":6,"Feyenoord":6,"PSV Eindhoven":6,"Lille":6,"VfB Stuttgart":6,"Real Betis":6,
+  "Club Brugge KV":5,"Shakhtar Donetsk":5,"Lens":5,"Como":5,"Slavia Praha":5,"Bodø/Glimt":5,
+  "AEK Athens FC":4,
+  "LASK Linz":3,"Slovan Bratislava":3,"Viking":3,
+  "Sabah FA":2
+};
+const _rateByTok=(()=>{ const m={}; for(const k in TEAM_RATING) m[tokset(k)]=TEAM_RATING[k]; return m; })();
+function teamRating(name){
+  if(TEAM_RATING[name]!=null) return TEAM_RATING[name];
+  const v=_rateByTok[tokset(name)];
+  return v!=null?v:5;                                  // невідомий клуб (новий сезон) — середина шкали
+}
+// Матч цікавий рівно настільки, наскільки сильніша його СЛАБША сторона, тому в неї більша вага.
+// Плюс невелика надбавка за рівність сил, яка сама масштабується від класу команд.
+function matchHeat(m){
+  const a=teamRating(m.home.name), b=teamRating(m.away.name);
+  const lo=Math.min(a,b), hi=Math.max(a,b);
+  let v=0.72*lo+0.28*hi;
+  if(hi-lo<=1) v+=0.5*lo/10;
+  return Math.max(1,Math.min(10,Math.round(v)));
+}
+function heatClass(h){ return h>=9?"h4":h>=7?"h3":h>=5?"h2":"h1"; }
+function heatWord(h){ const T=t(); return h>=9?T.hot4:h>=7?T.hot3:h>=5?T.hot2:T.hot1; }
 
 // ================== дані ==================
 let MATCHES=[], UPDATED=0;
@@ -439,10 +491,17 @@ function teamRowHtml(tm, sc, cls){
   return `<div class="tm ${cls}"><img class="crest" src="${tm.logo||""}" alt="" loading="lazy">
     <span class="nm">${tm.name}</span><span class="sc">${sc}</span></div>`;
 }
+let hotOnly=false;
+function setHot(v){ hotOnly=v; buildSchedule(); }
 function buildSchedule(){
   const box=document.getElementById("sched"), T=t();
-  const list=MATCHES.filter(m=>m.ts).sort((a,b)=>a.ts-b.ts);
-  if(!list.length){ box.innerHTML=`<div class="empty">${T.tableEmpty}</div>`; return; }
+  const filt=document.getElementById("sched-filt");
+  let list=MATCHES.filter(m=>m.ts).sort((a,b)=>a.ts-b.ts);
+  if(filt) filt.innerHTML=
+    `<button class="${hotOnly?"":"on"}" onclick="setHot(false)">${T.fAll}</button>`+
+    `<button class="${hotOnly?"on":""}" onclick="setHot(true)">${T.fHot}</button>`;
+  if(hotOnly) list=list.filter(m=>matchHeat(m)>=7);
+  if(!list.length){ box.innerHTML=`<div class="empty">${hotOnly?T.noHot:T.tableEmpty}</div>`; return; }
   const today=dayKey(new Date());
   let focusSet=false, html="", curDay="";
   for(const m of list){
@@ -452,25 +511,25 @@ function buildSchedule(){
       const isFocus=!focusSet && dk>=today; if(isFocus) focusSet=true;
       html+=`<div class="day-h${isFocus?" focus":""}"${isFocus?' id="focus-day"':""}>${dayLabel(dt)}</div>`;
     }
-    const live=liveNow(m), done=isDone(m), pub=isPubTime(dt), sc=m.score;
+    const live=liveNow(m), done=isDone(m), sc=m.score;
+    const h=matchHeat(m), hot=h>=9;
     const w1=sc&&sc[0]>sc[1], w2=sc&&sc[1]>sc[0];
     const timeMain=done?"✅":live?T.live:fmtTime(dt);
-    const timeSub=done?"":live?T.liveNow:(pub?"🍺 ":"")+tzLabel(dt);
-    html+=`<div class="srow${pub?" pub":""}${live?" live":""}${(isToday(dt)&&!done&&!live)?" today":""}${done?" done":""}" onclick="openMatch(${m.id})">
+    const timeSub=done?"":live?T.liveNow:tzLabel(dt);
+    html+=`<div class="srow${hot&&!done?" hot":""}${live?" live":""}${(isToday(dt)&&!done&&!live)?" today":""}${done?" done":""}" onclick="openMatch(${m.id})">
       <div class="time">${timeMain}<small>${timeSub}</small></div>
       <div class="rnd">${roundShort(m)}</div>
       <div class="pair">
         ${teamRowHtml(m.home, sc?sc[0]:"–", w1?"w":w2?"l":"")}
         ${teamRowHtml(m.away, sc?sc[1]:"–", w2?"w":w1?"l":"")}
       </div>
+      <div class="heat ${heatClass(h)}" title="${heatWord(h)}"><b>${h}</b><small>${heatWord(h)}</small></div>
     </div>`;
   }
   box.innerHTML=html;
 }
 
 // ================== плей-оф (пари у два матчі) ==================
-const tokset=s=>((s||"").toLowerCase().match(/[a-zа-яіїєґ]+/gi)||[]).sort().join(" ");
-const pairKey=(a,b)=>[tokset(a),tokset(b)].sort().join("|");
 // збирає матчі раунду в пари (2 матчі) з сумарним рахунком
 function tiesOf(round){
   const ms=MATCHES.filter(m=>m.round===round).sort((a,b)=>(a.ts||0)-(b.ts||0));
@@ -584,6 +643,7 @@ function openMatch(id){
       <span class="chip">${roundLabel(m)}</span>
       <span>📅 ${dt?dayLabel(dt)+", "+fmtTime(dt):""} (${tzLabel(dt)})</span>
     </div>
+    <div class="m-heat ${heatClass(matchHeat(m))}"><span>${T.heatLbl}</span><b>${matchHeat(m)}/10</b><span>${heatWord(matchHeat(m))}</span></div>
     ${pens}${legsHtml}
     <div class="m-stats" id="m-stats"></div>
     <div class="m-actions">
@@ -714,7 +774,7 @@ function applyStatic(){
   document.getElementById("tab-ko").textContent=T.tabKo;
   document.getElementById("leg-tb").innerHTML=[`<span>${T.legTable}</span>`,`<span>${T.legClick}</span>`].join(sep);
   document.getElementById("leg-sc").innerHTML=[`<span>${T.legTime(tzLabel())}</span>`,
-    `<span style="color:var(--green)">${T.legPub}</span>`,`<span style="color:var(--red)">${T.legLive}</span>`].join(sep);
+    `<span style="color:#ff7847">${T.legHeat}</span>`,`<span style="color:var(--red)">${T.legLive}</span>`].join(sep);
   document.getElementById("leg-ko").innerHTML=[`<span>${T.legKo}</span>`,`<span>${T.legClick}</span>`].join(sep);
   document.querySelector("footer").textContent=T.footer;
   const upd=document.getElementById("upd"); if(upd&&!MATCHES.length) upd.textContent=T.loading;

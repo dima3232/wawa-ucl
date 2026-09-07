@@ -15,7 +15,17 @@ visitor, so it stays inside a free data plan.
 - **Two-legged knockout ties** — each tie shows both legs' goals per team plus
   the aggregate; penalties are marked separately. The final is a single match.
 - **When to watch** — every fixture grouped by day in the **visitor's own
-  timezone**, with a 🍺 marker for evening kick-offs and a LIVE window.
+  timezone**, with a LIVE window and a **1–10 "worth watching" rating** on every
+  match, colour-coded from *must-see* down to *skippable*. A filter shows only
+  the stand-out fixtures. (Unlike the World Cup there are no late-night kick-offs
+  to flag, so the rating replaces the old pub-time marker.)
+
+  The rating comes from a curated 1–10 club-strength table, combined so that the
+  **weaker** side carries most of the weight — a match is only as good as its
+  weaker half, so a giant beating a minnow scores low — plus a small bonus for
+  evenly matched sides. Real Madrid–Inter rates 10, Manchester United–Sabah FA
+  rates 4. The table lives in `index.html` (`TEAM_RATING`) and is meant to be
+  edited by hand.
 - **Local language** — UI auto-detects Ukrainian/English from the browser with
   a manual switcher; the choice is kept in `localStorage`.
 - **Add to calendar** — Google and Outlook open a pre-filled event; Apple uses
