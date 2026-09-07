@@ -1,0 +1,20 @@
+{
+  "name": "ucl2627",
+  "main": "worker.js",
+  "compatibility_date": "2025-06-01",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS"
+  },
+  // той самий KV, що й у WC-проєкті — ключі рознесені префіксом "ucl:"
+  "kv_namespaces": [
+    { "binding": "UCL_KV", "id": "38b94f41406b42ff8272c4b71b008dbf" }
+  ],
+  // ключ Highlightly зі спільного Secrets Store (значення не в репозиторії)
+  "secrets_store_secrets": [
+    { "binding": "HIGHLIGHTLY_KEY", "store_id": "ed8c1e4b8aa24976844b6ada365fa834", "secret_name": "HIGHLIGHTLY_KEY" }
+  ],
+  "triggers": {
+    "crons": ["*/3 * * * *"]
+  }
+}

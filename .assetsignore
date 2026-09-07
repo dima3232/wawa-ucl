@@ -1,0 +1,10 @@
+worker.js
+wrangler.jsonc
+.assetsignore
+.gitignore
+README.md
+.git
+.claude
+fixtures
+fixtures2025
+fixtures2026

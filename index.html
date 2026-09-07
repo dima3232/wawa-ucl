@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-RPJMCE8YX3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-RPJMCE8YX3');
+</script>
+<title>⭐ Ліга чемпіонів 2026/27</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#121a30; --card:#161f3a; --card2:#1b2647;
+    --line:#3b4a73; --txt:#e7ecf7; --dim:#8a96b8; --gold:#f4c64a;
+    --green:#3fd07d; --red:#ff6b6b; --accent:#5b8cff; --conn:#4d5d8c; --rh:42px;
+  }
+  *{box-sizing:border-box}
+  html{margin:0}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;color:var(--txt);
+    background:radial-gradient(1100px 520px at 50% -8%,#19224a 0%,transparent 60%),var(--bg);}
+  a{color:var(--accent)}
+  header{position:sticky;top:0;z-index:30;backdrop-filter:blur(10px);
+    background:linear-gradient(180deg,rgba(11,16,32,.92),rgba(11,16,32,.7));
+    border-bottom:1px solid #20294a;padding:12px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;letter-spacing:.3px}
+  header .sub{color:var(--dim);font-size:12px}
+  .spacer{flex:1}
+  .tabs{display:flex;gap:6px;background:#0e1530;border:1px solid #20294a;border-radius:999px;padding:4px}
+  .tabs button{all:unset;cursor:pointer;padding:7px 16px;border-radius:999px;font-size:13px;color:var(--dim);font-weight:600}
+  .tabs button.active{background:var(--card2);color:var(--txt);box-shadow:0 1px 0 #2a3a66}
+  .lang{display:flex;gap:2px;background:#0e1530;border:1px solid #20294a;border-radius:999px;padding:3px}
+  .lang button{all:unset;cursor:pointer;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:800;color:var(--dim);letter-spacing:.3px}
+  .lang button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 0 #2a3a66}
+  .status{font-size:12px;color:var(--dim);display:flex;align-items:center;gap:7px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(63,208,125,.6);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(63,208,125,.5)}70%{box-shadow:0 0 0 7px rgba(63,208,125,0)}100%{box-shadow:0 0 0 0 rgba(63,208,125,0)}}
+
+  .wrap{padding:22px}
+  .view{display:none}
+  .view.active{display:block}
+  .crest{width:20px;height:20px;object-fit:contain;flex:0 0 auto}
+
+  /* ===== ТАБЛИЦЯ ЛІГОВОЇ ФАЗИ (36 команд, швейцарська система) ===== */
+  .tbl-wrap{max-width:820px;margin:0 auto;background:var(--card);border:1px solid #28335c;border-radius:13px;overflow:hidden}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:7px 8px;text-align:center;white-space:nowrap}
+  th{color:var(--dim);font-weight:600;font-size:10px;text-transform:uppercase;background:#0f1733;border-bottom:1px solid #232f56}
+  td.team{text-align:left;width:100%}
+  td.team .tw{display:flex;align-items:center;gap:9px;min-width:0}
+  td.team .nm{overflow:hidden;text-overflow:ellipsis;font-weight:600}
+  tbody tr{border-top:1px solid #1b243f}
+  tbody tr:hover{background:rgba(91,140,255,.06)}
+  td .pts{font-weight:800;color:var(--txt)}
+  .pos{font-weight:800;color:var(--dim);font-variant-numeric:tabular-nums}
+  /* зони кваліфікації */
+  tr.z1 td{background:rgba(63,208,125,.09)}
+  tr.z1 .pos{color:var(--green)}
+  tr.z2 td{background:rgba(244,198,74,.07)}
+  tr.z2 .pos{color:var(--gold)}
+  tr.z3 td{opacity:.62}
+  .zone-key{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin:12px auto 0;max-width:820px;font-size:11px;color:var(--dim)}
+  .zone-key i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .empty{max-width:680px;margin:34px auto;text-align:center;color:var(--dim);font-size:13px;line-height:1.6}
+
+  /* ===== РОЗКЛАД ===== */
+  .sched{max-width:760px;margin:0 auto}
+  .day-h{position:sticky;top:var(--hh,60px);scroll-margin-top:calc(var(--hh,60px) + 10px);background:linear-gradient(180deg,var(--bg),rgba(11,16,32,.85));
+    padding:10px 4px 6px;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.5px;
+    border-bottom:1px solid #232f56;margin-top:10px;text-transform:capitalize;backdrop-filter:blur(6px)}
+  .day-h.focus{border-bottom:2px solid var(--gold);box-shadow:0 2px 0 rgba(244,198,74,.25)}
+  .srow{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid #1b243f;border-radius:9px;cursor:pointer}
+  .srow:hover{background:rgba(91,140,255,.06)}
+  .srow.pub{box-shadow:inset 3px 0 0 var(--green);background:linear-gradient(90deg,rgba(63,208,125,.07),transparent)}
+  .srow.pub .time small{color:var(--green)}
+  .srow.today{background:linear-gradient(90deg,rgba(255,107,107,.10),transparent);border:1px solid #4a2740}
+  .srow.live{background:linear-gradient(90deg,rgba(255,107,107,.18),transparent);border:1px solid var(--red)}
+  .srow.live .time{color:var(--red);font-size:13px;letter-spacing:.5px}
+  .srow.live .time small{color:var(--red)}
+  .srow.done{opacity:.6}
+  .srow .time{font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;min-width:54px;color:var(--txt)}
+  .srow .time small{display:block;font-size:9px;font-weight:600;color:var(--dim);letter-spacing:1px}
+  .srow .rnd{font-size:10px;color:var(--dim);min-width:52px;text-transform:uppercase;text-align:center}
+  .srow .pair{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+  .srow .tm{display:flex;align-items:center;gap:8px;font-size:14px;min-width:0}
+  .srow .tm .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .srow .tm .sc{flex:0 0 auto;width:22px;margin-left:8px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+  .srow .tm.w .sc,.srow .tm.w .nm{color:var(--gold)}
+  .srow .tm.l{opacity:.55}
+  .badge-live{color:#fff;background:var(--red);border-radius:4px;padding:0 5px;font-weight:700;font-size:9px;letter-spacing:.5px}
+
+  /* ===== ПЛЕЙ-ОФ (пари у два матчі) ===== */
+  .round-tabs{position:sticky;top:var(--hh,52px);z-index:20;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
+    padding:8px 4px;margin:0 -4px;background:linear-gradient(180deg,var(--bg) 65%,transparent)}
+  .round-tabs::-webkit-scrollbar{display:none}
+  .round-tabs button{all:unset;cursor:pointer;flex:0 0 auto;padding:6px 16px;border-radius:999px;font-size:13px;
+    font-weight:700;color:var(--dim);background:#0e1530;border:1px solid #20294a;white-space:nowrap}
+  .round-tabs button.on{color:#0b1020;background:var(--gold);border-color:var(--gold)}
+  .bracket{position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+  .rounds{display:flex;align-items:center;gap:36px;padding:10px 8px;min-width:max-content}
+  .round-col{display:flex;flex-direction:column;justify-content:space-around;flex:0 0 auto;gap:14px}
+  .round-col>.rc-h{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);text-align:center;font-weight:800}
+  .tie{position:relative;width:252px;background:linear-gradient(180deg,var(--card),var(--card2));
+    border:1px solid #28335c;border-radius:13px;overflow:hidden;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+  .tie:hover{border-color:#41507f}
+  .tie.live{border-color:var(--red)}
+  .tie .rowt{display:flex;align-items:center;gap:9px;padding:0 0 0 12px;height:var(--rh);font-size:14px}
+  .tie .rowt+.rowt{border-top:1px solid #232f56}
+  .tie .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--dim);font-weight:600}
+  .tie .lgs{width:46px;flex:0 0 auto;align-self:stretch;border-left:1px solid #2a3658;
+    display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:#6b76a0;font-variant-numeric:tabular-nums}
+  .tie .lgs span{width:12px;text-align:center}
+  .tie .agg{width:34px;flex:0 0 auto;align-self:stretch;line-height:var(--rh);text-align:center;font-size:15px;
+    border-left:1px solid #2a3658;color:#8893b5;font-weight:800;font-variant-numeric:tabular-nums}
+  .tie .rowt.win .nm{color:var(--txt)}
+  .tie .rowt.win .agg{color:var(--gold)}
+  .tie .rowt.win{background:linear-gradient(90deg,rgba(244,198,74,.10),transparent)}
+  .tie .rowt.lose .nm,.tie .rowt.lose .agg{opacity:.45}
+  .tie .meta{padding:5px 12px;font-size:11px;color:#6b76a0;background:#0f1733;display:flex;justify-content:space-between;gap:8px}
+  .agg .pen{font-size:10px;color:var(--gold);vertical-align:super;margin-left:1px}
+  .final-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .cup{width:74px;line-height:0;filter:drop-shadow(0 8px 22px rgba(244,198,74,.45));animation:float 4s ease-in-out infinite}
+  .cup svg{width:100%;height:auto;display:block}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  .champ{text-align:center;font-weight:800;color:var(--gold);font-size:15px}
+
+  .err{max-width:680px;margin:40px auto;background:#2a1730;border:1px solid #5a2842;border-radius:12px;padding:18px;color:#ffb3c7}
+  .legend{display:flex;flex-wrap:wrap;gap:5px 11px;justify-content:center;align-items:center;color:var(--dim);font-size:11px;margin:14px 0 6px;line-height:1.5}
+  .legend b{color:var(--gold)}
+  .legend .sep{color:#39426a;user-select:none}
+  footer{text-align:center;color:#5a648a;font-size:11px;padding:18px}
+
+  @media (max-width:600px){
+    .wrap{padding:10px 6px}
+    header{padding:7px 10px;gap:5px 8px}
+    header h1{font-size:13px;line-height:1.15}
+    header .sub{display:none}
+    header>span:first-child{font-size:17px}
+    .spacer{display:none}
+    .status{order:2;margin-left:auto;font-size:10px}
+    .tabs{order:3;width:100%;padding:3px}
+    .tabs button{flex:1;text-align:center;padding:7px 4px;font-size:11px}
+    .legend{font-size:10px;gap:4px 8px;margin:8px 0 4px;padding:0 6px}
+    footer{font-size:10px;padding:12px}
+    .sched{max-width:100%}
+    .day-h{font-size:12px;padding:9px 4px 5px}
+    .srow{gap:8px;padding:9px 6px}
+    .srow .rnd{min-width:40px;font-size:9px}
+    .srow .time{min-width:48px;font-size:15px}
+    .srow .tm{font-size:13px}
+    .tie{width:min(84vw,360px)}
+    th,td{padding:6px 5px;font-size:12px}
+    /* на вузькому екрані ховаємо другорядні колонки таблиці */
+    .c-opt{display:none}
+  }
+
+  /* ===== модалка матчу ===== */
+  .modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;
+    background:rgba(6,10,22,.72);backdrop-filter:blur(4px);padding:18px}
+  .modal.show{display:flex}
+  .modal-card{position:relative;width:min(420px,100%);max-height:86vh;overflow:auto;
+    background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid #2a3a66;border-radius:16px;
+    box-shadow:0 22px 60px rgba(0,0,0,.5);padding:22px 18px 18px}
+  .modal-x{position:absolute;top:9px;right:11px;all:unset;cursor:pointer;font-size:23px;line-height:1;color:var(--dim);padding:5px}
+  .modal-x:hover{color:var(--txt)}
+  .m-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:2px 0 14px}
+  .m-head .m-team{display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:800;text-align:center;font-size:15px}
+  .m-head .m-team img{width:38px;height:38px;object-fit:contain}
+  .m-head .m-score{font-size:20px;font-weight:900;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .m-meta{display:flex;flex-wrap:wrap;gap:8px 12px;justify-content:center;color:var(--dim);font-size:12px;margin-bottom:6px}
+  .m-meta .chip{background:#0e1530;border:1px solid #2a3a66;border-radius:999px;padding:2px 10px;color:var(--txt);font-weight:700}
+  .m-actions{margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:9px}
+  .cal-title{font-weight:800;font-size:13px;color:var(--dim)}
+  .cal-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .cal-opt{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    background:#0e1530;border:1px solid #2a3a66;border-radius:11px;padding:9px 15px;
+    font-size:13px;font-weight:700;color:var(--txt)}
+  .cal-opt:hover{border-color:var(--gold);background:#141d3c}
+  .cal-hint{color:#5a648a;font-size:11px;text-align:center;max-width:300px}
+  .m-legs{border-top:1px solid #243057;padding-top:12px;margin-top:12px;font-size:13px}
+  .m-legs .lg{display:flex;justify-content:space-between;gap:10px;padding:4px 0;color:var(--dim)}
+  .m-legs .lg b{color:var(--txt);font-variant-numeric:tabular-nums}
+  .m-stats{margin-top:14px}
+  .stats-h{font-size:12px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;
+    margin-bottom:8px;display:flex;align-items:center;gap:8px;border-top:1px solid #243057;padding-top:14px}
+  .stats-live{font-size:10px;font-weight:800;color:var(--green);background:rgba(63,208,125,.13);
+    padding:1px 7px;border-radius:999px;text-transform:none;letter-spacing:0}
+  .stats-load,.stats-none{color:#5a648a;font-size:12px;padding:4px 0}
+  .st-poss{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;font-variant-numeric:tabular-nums}
+  .st-poss .st-bar{flex:1;height:7px;border-radius:999px;background:#2a3a66;overflow:hidden}
+  .st-poss .st-bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+  .st-poss-lbl{text-align:center;color:var(--dim);font-size:11px;margin:3px 0 6px}
+  .st-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:5px 0;border-top:1px solid #1b2444}
+  .st-row .st-l{text-align:left;font-weight:800;font-variant-numeric:tabular-nums}
+  .st-row .st-r{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+  .st-row .st-m{color:var(--dim);font-size:12px;white-space:nowrap}
+</style>
+</head>
+<body>
+<header>
+  <span style="font-size:22px">⭐</span>
+  <div>
+    <h1 id="h1">Ліга чемпіонів 2026/27</h1>
+    <div class="sub" id="sub">Лігова фаза та плей-оф · оновлюється автоматично</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="tabs">
+    <button id="tab-tb" class="active" onclick="show('tb')">📊 Таблиця</button>
+    <button id="tab-sc" onclick="show('sc')">📅 Коли дивитись</button>
+    <button id="tab-ko" onclick="show('ko')">🏆 Плей-оф</button>
+  </div>
+  <div class="lang" id="lang"></div>
+  <div class="status"><span class="dot"></span><span id="upd">завантаження…</span></div>
+</header>
+
+<div class="wrap">
+  <div id="view-tb" class="view active">
+    <div class="legend" id="leg-tb"></div>
+    <div id="table" class="tbl-wrap"></div>
+    <div class="zone-key" id="zone-key"></div>
+  </div>
+  <div id="view-sc" class="view">
+    <div class="legend" id="leg-sc"></div>
+    <div id="sched" class="sched"></div>
+  </div>
+  <div id="view-ko" class="view">
+    <div class="legend" id="leg-ko"></div>
+    <div id="round-tabs" class="round-tabs"></div>
+    <div id="bracket" class="bracket"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-card" id="modal-card"></div>
+</div>
+
+<footer></footer>
+
+<script>
+// ================== мова ==================
+const SUPPORTED=["uk","en"];
+const LOCALE={uk:"uk-UA",en:"en-GB"};
+const LANGNAME={uk:"UA",en:"EN"};
+function detectLang(){
+  try{ const s=localStorage.getItem("ucl_lang"); if(s&&SUPPORTED.includes(s)) return s; }catch(e){}
+  const navs=(navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||"en"];
+  for(const l of navs){ const two=(l||"").slice(0,2).toLowerCase(); if(SUPPORTED.includes(two)) return two; }
+  return "en";
+}
+let lang=detectLang();
+let TZ=(()=>{ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||"Europe/Berlin"; }catch(e){ return "Europe/Berlin"; } })();
+function locale(){ return LOCALE[lang]||"en-GB"; }
+function tzLabel(dt){
+  try{
+    const p=new Intl.DateTimeFormat(locale(),{timeZone:TZ,timeZoneName:"short"}).formatToParts(dt||new Date());
+    const z=p.find(x=>x.type==="timeZoneName"); return z?z.value:"";
+  }catch(e){ return ""; }
+}
+const I18N={
+  uk:{
+    title:"⭐ Ліга чемпіонів 2026/27", h1:"Ліга чемпіонів 2026/27",
+    sub:"Лігова фаза та плей-оф · оновлюється автоматично",
+    tabTable:"📊 Таблиця", tabSchedule:"📅 Коли дивитись", tabKo:"🏆 Плей-оф",
+    loading:"завантаження…", updated:x=>"оновлено "+x, updateError:"помилка оновлення",
+    loadErr:e=>`<div class="err">Не вдалося завантажити дані: ${e}</div>`,
+    legTable:"Швейцарська система: 36 команд, у кожної 8 різних суперників",
+    legPub:"🍺 вечір (17:00–23:59) — зручно в паб", legClick:"клік — деталі матчу",
+    legTime:z=>`час у твоєму поясі (${z})`, legLive:"LIVE — матч триває",
+    legKo:"Пари плей-оф — у два матчі, показано суму",
+    z1:"1–8 → одразу 1/8 фіналу", z2:"9–24 → раунд плей-оф", z3:"25–36 → виліт",
+    thPos:"#", thTeam:"Команда", thP:"І", thW:"В", thD:"Н", thL:"П", thG:"М", thGD:"±", thPts:"О",
+    tableEmpty:"Лігова фаза ще не почалась.<br>Тут з’явиться таблиця всіх 36 команд.",
+    notStarted:"Лігова фаза ще не почалась — це учасники. Місця й зони з’являться після перших матчів.",
+    koEmpty:"Плей-оф почнеться у лютому 2027.<br>Спершу — лігова фаза: місця 1–8 проходять одразу в 1/8 фіналу, 9–24 грають раунд плей-оф.",
+    live:"LIVE", liveNow:"триває", awaiting:"чекаємо рахунок",
+    round:r=>r, rTour:n=>"Тур "+n, rKo:{ "Round of 32":"Раунд плей-оф", "Round of 16":"1/8 фіналу",
+      "Quarter-finals":"1/4 фіналу", "Semi-finals":"1/2 фіналу", "Final":"Фінал" },
+    rKoShort:{ "Round of 32":"ПО", "Round of 16":"1/8", "Quarter-finals":"1/4", "Semi-finals":"1/2", "Final":"Фінал" },
+    agg:"за сумою", pens:(a,b)=>`пен. ${a}–${b}`, leg:(n)=>"Матч "+n, champion:"Переможець",
+    statsTitle:"Статистика матчу", statLoading:"завантажуємо…", statSoon:"Статистика з’явиться після початку матчу",
+    statNA:"Статистика недоступна", statLiveTag:"наживо",
+    stLbl:{possession:"Володіння",xg:"xG",sot:"Удари у створ",shots:"Удари",bigch:"Явні моменти",
+      corners:"Кутові",offsides:"Офсайди",fouls:"Фоли",cards:"Картки"},
+    calTitle:"📅 Додати в календар", calHint:"Усі три відкривають подію у твоєму календарі.",
+    calIcs:"Завантажити .ics",
+    evTitle:(a,b,r)=>`${a} – ${b} · ЛЧ${r?` (${r})`:""}`,
+    descMatch:(a,b)=>`${a} проти ${b}`, descRound:r=>`Стадія: ${r}`,
+    descWatch:(d,t,z)=>`Коли: ${d}, ${t} (${z})`, descResult:(a,b)=>`Рахунок: ${a}:${b}`,
+    descSite:"Ліга чемпіонів 2026/27: https://ucl2627.challango.com",
+    footer:"зроблено для Football | WAWA ⚽"
+  },
+  en:{
+    title:"⭐ Champions League 2026/27", h1:"Champions League 2026/27",
+    sub:"League phase & knockouts · updates automatically",
+    tabTable:"📊 Table", tabSchedule:"📅 When to watch", tabKo:"🏆 Knockouts",
+    loading:"loading…", updated:x=>"updated "+x, updateError:"update failed",
+    loadErr:e=>`<div class="err">Could not load data: ${e}</div>`,
+    legTable:"Swiss model: 36 teams, each plays 8 different opponents",
+    legPub:"🍺 evening (17:00–23:59) — good for the pub", legClick:"click for match details",
+    legTime:z=>`times in your zone (${z})`, legLive:"LIVE — match in progress",
+    legKo:"Knockout ties are two-legged; aggregate shown",
+    z1:"1–8 → straight to Round of 16", z2:"9–24 → knockout play-off", z3:"25–36 → eliminated",
+    thPos:"#", thTeam:"Team", thP:"P", thW:"W", thD:"D", thL:"L", thG:"Goals", thGD:"±", thPts:"Pts",
+    tableEmpty:"The league phase hasn't started yet.<br>The full 36-team table will appear here.",
+    notStarted:"League phase hasn't started — these are the entrants. Positions and zones appear after the first matches.",
+    koEmpty:"Knockouts begin in February 2027.<br>First comes the league phase: places 1–8 go straight to the Round of 16, places 9–24 play a knockout play-off.",
+    live:"LIVE", liveNow:"live now", awaiting:"awaiting score",
+    round:r=>r, rTour:n=>"Matchday "+n, rKo:{ "Round of 32":"Play-off round", "Round of 16":"Round of 16",
+      "Quarter-finals":"Quarter-finals", "Semi-finals":"Semi-finals", "Final":"Final" },
+    rKoShort:{ "Round of 32":"PO", "Round of 16":"R16", "Quarter-finals":"QF", "Semi-finals":"SF", "Final":"Final" },
+    agg:"on aggregate", pens:(a,b)=>`pens ${a}–${b}`, leg:(n)=>"Leg "+n, champion:"Winner",
+    statsTitle:"Match statistics", statLoading:"loading…", statSoon:"Stats appear after kick-off",
+    statNA:"Statistics unavailable", statLiveTag:"live",
+    stLbl:{possession:"Possession",xg:"xG",sot:"Shots on target",shots:"Shots",bigch:"Big chances",
+      corners:"Corners",offsides:"Offsides",fouls:"Fouls",cards:"Cards"},
+    calTitle:"📅 Add to calendar", calHint:"All three open the event in your calendar.",
+    calIcs:"Download .ics",
+    evTitle:(a,b,r)=>`${a} – ${b} · UCL${r?` (${r})`:""}`,
+    descMatch:(a,b)=>`${a} vs ${b}`, descRound:r=>`Stage: ${r}`,
+    descWatch:(d,t,z)=>`When: ${d}, ${t} (${z})`, descResult:(a,b)=>`Score: ${a}:${b}`,
+    descSite:"Champions League 2026/27: https://ucl2627.challango.com",
+    footer:"made for Football | WAWA ⚽"
+  }
+};
+function t(){ return I18N[lang]||I18N.en; }
+
+// ================== час ==================
+const MATCH_MS=150*60000;
+function mDate(m){ return m.ts? new Date(m.ts) : null; }
+function fmtTime(dt){ return dt? dt.toLocaleTimeString(locale(),{timeZone:TZ,hour:"2-digit",minute:"2-digit"}) : ""; }
+function dayKey(dt){ return dt? dt.toLocaleDateString("sv-SE",{timeZone:TZ}) : ""; }
+function dayLabel(dt){ return dt? dt.toLocaleDateString(locale(),{timeZone:TZ,weekday:"long",day:"2-digit",month:"long"}) : ""; }
+function hourIn(dt){ return dt? +dt.toLocaleTimeString("en-GB",{timeZone:TZ,hour:"2-digit",hour12:false}).slice(0,2) : -1; }
+function isPubTime(dt){ const h=hourIn(dt); return h>=17&&h<=23; }
+function isToday(dt){ return dt && dayKey(dt)===dayKey(new Date()); }
+
+// ================== дані ==================
+let MATCHES=[], UPDATED=0;
+const DONE_RE=/finish|full|ended|aet|pen|after/i;
+const isDone=m=>DONE_RE.test(m.status||"");
+function liveNow(m){
+  if(!m||isDone(m)||!m.ts) return false;
+  const now=Date.now(); return now>=m.ts && now<m.ts+MATCH_MS;
+}
+const LS_RE=/^League Stage - (\d+)$/i;
+const KO_ORDER=["Round of 32","Round of 16","Quarter-finals","Semi-finals","Final"];
+function lsNum(m){ const x=LS_RE.exec(m.round||""); return x? +x[1] : 0; }
+const isLS=m=>lsNum(m)>0;
+const isKO=m=>KO_ORDER.includes(m.round||"");
+function roundShort(m){
+  const n=lsNum(m); if(n) return (lang==="uk"?"Т":"MD")+n;
+  return t().rKoShort[m.round]||m.round||"";
+}
+function roundLabel(m){
+  const n=lsNum(m); if(n) return t().rTour(n);
+  return t().rKo[m.round]||m.round||"";
+}
+
+async function load(){
+  try{
+    const r=await fetch("/fixtures?t="+Date.now(),{cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const d=await r.json();
+    // дедуплікація за id: пагінація джерела інколи повертає той самий матч двічі
+    const seen=new Map();
+    for(const m of (d.matches||[])){ if(m&&m.id!=null&&m.home&&m.away&&m.home.name&&m.away.name) seen.set(m.id,m); }
+    MATCHES=[...seen.values()];
+    UPDATED=d.updated||Date.now();
+    render();
+    document.getElementById("upd").textContent=
+      t().updated(new Date().toLocaleTimeString(locale(),{hour:"2-digit",minute:"2-digit"}));
+  }catch(e){
+    document.getElementById("upd").textContent=t().updateError;
+    if(!MATCHES.length) document.getElementById("table").innerHTML=t().loadErr(e.message);
+  }
+}
+function render(){ buildTable(); buildSchedule(); buildBracket(); }
+
+// ================== таблиця лігової фази ==================
+function computeTable(){
+  const rows=new Map();
+  const touch=tm=>{
+    if(!rows.has(tm.id)) rows.set(tm.id,{id:tm.id,name:tm.name,logo:tm.logo,p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0});
+    return rows.get(tm.id);
+  };
+  for(const m of MATCHES){
+    if(!isLS(m)) continue;
+    const H=touch(m.home), A=touch(m.away);
+    if(!isDone(m)||!m.score) continue;
+    const [a,b]=m.score;
+    H.p++; A.p++; H.gf+=a; H.ga+=b; A.gf+=b; A.ga+=a;
+    if(a>b){ H.w++; A.l++; H.pts+=3; }
+    else if(a<b){ A.w++; H.l++; A.pts+=3; }
+    else { H.d++; A.d++; H.pts++; A.pts++; }
+  }
+  return [...rows.values()].sort((x,y)=>
+    (y.pts-x.pts) || ((y.gf-y.ga)-(x.gf-x.ga)) || (y.gf-x.gf) || x.name.localeCompare(y.name));
+}
+function buildTable(){
+  const box=document.getElementById("table"), key=document.getElementById("zone-key"), T=t();
+  const rows=computeTable();
+  if(!rows.length){ box.innerHTML=`<div class="empty">${T.tableEmpty}</div>`; key.innerHTML=""; return; }
+  // поки не зіграно жодного матчу — це просто список учасників, зони не фарбуємо (інакше
+  // «перша вісімка» виглядала б як результат, хоча це лише алфавіт)
+  const started=rows.some(r=>r.p>0);
+  const tr=rows.map((r,i)=>{
+    const pos=i+1, z=!started?"":pos<=8?"z1":pos<=24?"z2":"z3";
+    return `<tr class="${z}">
+      <td class="pos">${pos}</td>
+      <td class="team"><div class="tw"><img class="crest" src="${r.logo||""}" alt="" loading="lazy"><span class="nm">${r.name}</span></div></td>
+      <td>${r.p}</td>
+      <td class="c-opt">${r.w}</td><td class="c-opt">${r.d}</td><td class="c-opt">${r.l}</td>
+      <td class="c-opt">${r.gf}:${r.ga}</td>
+      <td>${r.gf-r.ga>0?"+":""}${r.gf-r.ga}</td>
+      <td><span class="pts">${r.pts}</span></td>
+    </tr>`;
+  }).join("");
+  box.innerHTML=`<table>
+    <thead><tr>
+      <th>${T.thPos}</th><th style="text-align:left">${T.thTeam}</th><th>${T.thP}</th>
+      <th class="c-opt">${T.thW}</th><th class="c-opt">${T.thD}</th><th class="c-opt">${T.thL}</th>
+      <th class="c-opt">${T.thG}</th><th>${T.thGD}</th><th>${T.thPts}</th>
+    </tr></thead><tbody>${tr}</tbody></table>`;
+  key.innerHTML = started ? [
+    `<span><i style="background:rgba(63,208,125,.5)"></i>${T.z1}</span>`,
+    `<span><i style="background:rgba(244,198,74,.5)"></i>${T.z2}</span>`,
+    `<span><i style="background:#2a3450"></i>${T.z3}</span>`
+  ].join("") : `<span>${T.notStarted}</span>`;
+}
+
+// ================== розклад ==================
+function teamRowHtml(tm, sc, cls){
+  return `<div class="tm ${cls}"><img class="crest" src="${tm.logo||""}" alt="" loading="lazy">
+    <span class="nm">${tm.name}</span><span class="sc">${sc}</span></div>`;
+}
+function buildSchedule(){
+  const box=document.getElementById("sched"), T=t();
+  const list=MATCHES.filter(m=>m.ts).sort((a,b)=>a.ts-b.ts);
+  if(!list.length){ box.innerHTML=`<div class="empty">${T.tableEmpty}</div>`; return; }
+  const today=dayKey(new Date());
+  let focusSet=false, html="", curDay="";
+  for(const m of list){
+    const dt=mDate(m), dk=dayKey(dt);
+    if(dk!==curDay){
+      curDay=dk;
+      const isFocus=!focusSet && dk>=today; if(isFocus) focusSet=true;
+      html+=`<div class="day-h${isFocus?" focus":""}"${isFocus?' id="focus-day"':""}>${dayLabel(dt)}</div>`;
+    }
+    const live=liveNow(m), done=isDone(m), pub=isPubTime(dt), sc=m.score;
+    const w1=sc&&sc[0]>sc[1], w2=sc&&sc[1]>sc[0];
+    const timeMain=done?"✅":live?T.live:fmtTime(dt);
+    const timeSub=done?"":live?T.liveNow:(pub?"🍺 ":"")+tzLabel(dt);
+    html+=`<div class="srow${pub?" pub":""}${live?" live":""}${(isToday(dt)&&!done&&!live)?" today":""}${done?" done":""}" onclick="openMatch(${m.id})">
+      <div class="time">${timeMain}<small>${timeSub}</small></div>
+      <div class="rnd">${roundShort(m)}</div>
+      <div class="pair">
+        ${teamRowHtml(m.home, sc?sc[0]:"–", w1?"w":w2?"l":"")}
+        ${teamRowHtml(m.away, sc?sc[1]:"–", w2?"w":w1?"l":"")}
+      </div>
+    </div>`;
+  }
+  box.innerHTML=html;
+}
+
+// ================== плей-оф (пари у два матчі) ==================
+const tokset=s=>((s||"").toLowerCase().match(/[a-zа-яіїєґ]+/gi)||[]).sort().join(" ");
+const pairKey=(a,b)=>[tokset(a),tokset(b)].sort().join("|");
+// збирає матчі раунду в пари (2 матчі) з сумарним рахунком
+function tiesOf(round){
+  const ms=MATCHES.filter(m=>m.round===round).sort((a,b)=>(a.ts||0)-(b.ts||0));
+  const by=new Map();
+  for(const m of ms){
+    const k=pairKey(m.home.name,m.away.name);
+    if(!by.has(k)) by.set(k,{legs:[],a:m.home,b:m.away});   // a/b — орієнтація за першим матчем
+    by.get(k).legs.push(m);
+  }
+  return [...by.values()].map(tie=>{
+    let ga=0,gb=0,pa=null,pb=null,anyScore=false;
+    for(const lg of tie.legs){
+      if(!lg.score) continue;
+      anyScore=true;
+      const homeIsA=tokset(lg.home.name)===tokset(tie.a.name);
+      ga+=homeIsA?lg.score[0]:lg.score[1];
+      gb+=homeIsA?lg.score[1]:lg.score[0];
+      if(lg.pens){ const hA=homeIsA; pa=hA?lg.pens[0]:lg.pens[1]; pb=hA?lg.pens[1]:lg.pens[0]; }
+    }
+    const allDone=tie.legs.length>0 && tie.legs.every(isDone);
+    let win=0;
+    if(allDone&&anyScore){
+      if(pa!=null&&pb!=null&&pa!==pb) win=pa>pb?1:2;
+      else if(ga!==gb) win=ga>gb?1:2;
+    }
+    return {...tie, ga, gb, pa, pb, anyScore, allDone, win, live:tie.legs.some(liveNow)};
+  });
+}
+const CUP_SVG=`<svg viewBox="0 0 64 64"><path fill="#f4c64a" d="M18 6h28v12a14 14 0 0 1-28 0V6z"/>
+  <path fill="#e0ae2f" d="M46 8h6a8 8 0 0 1-8 12V8zM18 8h-6a8 8 0 0 0 8 12V8z"/>
+  <rect x="28" y="30" width="8" height="12" fill="#e0ae2f"/><rect x="20" y="42" width="24" height="6" rx="2" fill="#f4c64a"/>
+  <rect x="16" y="48" width="32" height="6" rx="2" fill="#e0ae2f"/></svg>`;
+function tieCard(tie, round){
+  const T=t();
+  const cls=(n)=>tie.allDone?(tie.win===n?"win":tie.win?"lose":""):"";
+  const aggA=tie.anyScore?tie.ga:"–", aggB=tie.anyScore?tie.gb:"–";
+  const penA=(tie.pa!=null)?`<span class="pen">${tie.pa}</span>`:"";
+  const penB=(tie.pb!=null)?`<span class="pen">${tie.pb}</span>`:"";
+  // голи конкретної команди в кожному матчі пари (а не рядок рахунку)
+  const goalsOf=(team)=>tie.legs.map(l=>{
+    if(!l.score) return "–";
+    return tokset(l.home.name)===tokset(team.name) ? l.score[0] : l.score[1];
+  });
+  const two=tie.legs.length>1;
+  const cellsA=two?`<div class="lgs">${goalsOf(tie.a).map(g=>`<span>${g}</span>`).join("")}</div>`:"";
+  const cellsB=two?`<div class="lgs">${goalsOf(tie.b).map(g=>`<span>${g}</span>`).join("")}</div>`:"";
+  const first=tie.legs[0];
+  const dt=first?mDate(first):null;
+  const when=dt?dayLabel(dt).replace(/^\w/,c=>c.toUpperCase()):"";
+  return `<div class="tie${tie.live?" live":""}" onclick="openMatch(${first?first.id:0})">
+    <div class="rowt ${cls(1)}"><img class="crest" src="${tie.a.logo||""}" alt=""><span class="nm">${tie.a.name}</span>
+      ${cellsA}<span class="agg">${aggA}${penA}</span></div>
+    <div class="rowt ${cls(2)}"><img class="crest" src="${tie.b.logo||""}" alt=""><span class="nm">${tie.b.name}</span>
+      ${cellsB}<span class="agg">${aggB}${penB}</span></div>
+    <div class="meta"><span>${tie.live?'<span class="badge-live">LIVE</span> ':""}${when}</span>
+      <span>${two?T.agg:(dt?fmtTime(dt):"")}</span></div>
+  </div>`;
+}
+function buildBracket(){
+  const root=document.getElementById("bracket"), bar=document.getElementById("round-tabs"), T=t();
+  const present=KO_ORDER.filter(r=>MATCHES.some(m=>m.round===r));
+  if(!present.length){ root.innerHTML=`<div class="empty">${T.koEmpty}</div>`; bar.innerHTML=""; return; }
+  bar.innerHTML=present.map(r=>`<button data-round="${r}" onclick="gotoRound('${r}')">${T.rKo[r]||r}</button>`).join("");
+  const cols=present.map(r=>{
+    const ties=tiesOf(r);
+    const inner=ties.map(x=>tieCard(x,r)).join("");
+    if(r==="Final"){
+      const f=ties[0];
+      const champ=f&&f.win?(f.win===1?f.a:f.b):null;
+      return `<div class="round-col" data-round="${r}"><div class="rc-h">${T.rKo[r]}</div>
+        <div class="final-wrap"><div class="cup">${CUP_SVG}</div>
+        <div class="champ">${champ?champ.name:""}</div>${inner}</div></div>`;
+    }
+    return `<div class="round-col" data-round="${r}"><div class="rc-h">${T.rKo[r]||r}</div>${inner}</div>`;
+  }).join("");
+  root.innerHTML=`<div class="rounds">${cols}</div>`;
+  const firstBtn=bar.querySelector("button"); if(firstBtn) firstBtn.classList.add("on");
+}
+function gotoRound(r){
+  const br=document.getElementById("bracket"), col=br.querySelector(`.round-col[data-round="${r}"]`);
+  if(col) br.scrollTo({left:col.offsetLeft-10, behavior:"smooth"});
+  document.querySelectorAll("#round-tabs button").forEach(b=>b.classList.toggle("on", b.dataset.round===r));
+}
+
+// ================== модалка матчу ==================
+let statsReq=0;
+function closeModal(){ document.getElementById("modal").classList.remove("show"); }
+function openMatch(id){
+  const m=MATCHES.find(x=>String(x.id)===String(id)); if(!m) return;
+  const T=t(), dt=mDate(m), sc=m.score, live=liveNow(m);
+  const head=sc?`${sc[0]} : ${sc[1]}`:(dt?fmtTime(dt):"");
+  const pens=m.pens?`<div class="m-meta"><span>${T.pens(m.pens[0],m.pens[1])}</span></div>`:"";
+  // другий матч пари (якщо це плей-оф)
+  let legsHtml="";
+  if(isKO(m)){
+    const tie=tiesOf(m.round).find(x=>x.legs.some(l=>l.id===m.id));
+    if(tie&&tie.legs.length>1){
+      legsHtml=`<div class="m-legs">`+tie.legs.map((l,i)=>
+        `<div class="lg"><span>${T.leg(i+1)}: ${l.home.name} – ${l.away.name}</span><b>${l.score?l.score[0]+":"+l.score[1]:"–"}</b></div>`
+      ).join("")+`<div class="lg"><span>${T.agg}</span><b>${tie.ga}:${tie.gb}</b></div></div>`;
+    }
+  }
+  document.getElementById("modal-card").innerHTML=`
+    <button class="modal-x" onclick="closeModal()">×</button>
+    <div class="m-head">
+      <div class="m-team"><img src="${m.home.logo||""}" alt="">${m.home.name}</div>
+      <div class="m-score">${live?'<span class="badge-live">LIVE</span> ':""}${head}</div>
+      <div class="m-team"><img src="${m.away.logo||""}" alt="">${m.away.name}</div>
+    </div>
+    <div class="m-meta">
+      <span class="chip">${roundLabel(m)}</span>
+      <span>📅 ${dt?dayLabel(dt)+", "+fmtTime(dt):""} (${tzLabel(dt)})</span>
+    </div>
+    ${pens}${legsHtml}
+    <div class="m-stats" id="m-stats"></div>
+    <div class="m-actions">
+      <div class="cal-title">${T.calTitle}</div>
+      <div class="cal-row">
+        <a class="cal-opt" target="_blank" rel="noopener" href="${googleCalUrl(m)}">📆 Google</a>
+        <a class="cal-opt" target="_blank" rel="noopener" href="${outlookCalUrl(m)}">📧 Outlook</a>
+        <a class="cal-opt" href="${appleWebcalUrl(m)}">🍎 Apple</a>
+      </div>
+      <div class="cal-hint">${T.calHint} <a href="#" onclick="addToCalendar(${m.id});return false">${T.calIcs}</a></div>
+    </div>`;
+  document.getElementById("modal").classList.add("show");
+  loadStats(m);
+}
+async function loadStats(m){
+  const box=document.getElementById("m-stats"); if(!box) return;
+  box.innerHTML="";
+  if(!m.ts||Date.now()<m.ts) return;                       // ще не почався
+  const T=t();
+  box.innerHTML=`<div class="stats-h">${T.statsTitle}</div><div class="stats-load">${T.statLoading}</div>`;
+  const my=++statsReq;
+  try{
+    const d=await (await fetch("/stats?id="+encodeURIComponent(m.id),{cache:"no-store"})).json();
+    if(my!==statsReq) return;
+    renderStats(box,d,m);
+  }catch(e){
+    if(my===statsReq) box.innerHTML=`<div class="stats-h">${T.statsTitle}</div><div class="stats-none">${T.statNA}</div>`;
+  }
+}
+function renderStats(box,data,m){
+  const T=t();
+  if(!data||data.status!=="ok"){
+    const msg=data&&data.status==="pending"?T.statSoon:"";
+    box.innerHTML=msg?`<div class="stats-h">${T.statsTitle}</div><div class="stats-none">${msg}</div>`:"";
+    return;
+  }
+  let L=data.home,R=data.away;
+  if(tokset(data.home.name)!==tokset(m.home.name)&&tokset(data.away.name)===tokset(m.home.name)){ L=data.away; R=data.home; }
+  const ls=L.s||{}, rs=R.s||{};
+  const num=(v,dec)=> v==null?"–":(dec?(+v).toFixed(2):(typeof v==="number"?Math.round(v):v));
+  let rows="";
+  if(ls.possession!=null||rs.possession!=null){
+    const lp=Math.round((+ls.possession||0)*100), rp=Math.round((+rs.possession||0)*100);
+    rows+=`<div class="st-poss"><span>${lp}%</span><div class="st-bar"><i style="width:${lp}%"></i></div><span>${rp}%</span></div>
+           <div class="st-poss-lbl">${T.stLbl.possession}</div>`;
+  }
+  for(const k of ["xg","sot","shots","bigch","corners","offsides","fouls"]){
+    if(ls[k]==null&&rs[k]==null) continue;
+    rows+=`<div class="st-row"><span class="st-l">${num(ls[k],k==="xg")}</span><span class="st-m">${T.stLbl[k]}</span><span class="st-r">${num(rs[k],k==="xg")}</span></div>`;
+  }
+  const card=s=>{ const y=+s.yellow||0,r=+s.red||0; let o=""; if(y)o+=`🟨${y} `; if(r)o+=`🟥${r}`; return o.trim()||"–"; };
+  if(ls.yellow||ls.red||rs.yellow||rs.red)
+    rows+=`<div class="st-row"><span class="st-l">${card(ls)}</span><span class="st-m">${T.stLbl.cards}</span><span class="st-r">${card(rs)}</span></div>`;
+  if(!rows){ box.innerHTML=""; return; }
+  box.innerHTML=`<div class="stats-h">${T.statsTitle}${data.final?"":` <span class="stats-live">${T.statLiveTag}</span>`}</div>${rows}`;
+}
+
+// ================== календар ==================
+function pad2(n){ return String(n).padStart(2,"0"); }
+function icsStamp(d){ return d.getUTCFullYear()+pad2(d.getUTCMonth()+1)+pad2(d.getUTCDate())
+  +"T"+pad2(d.getUTCHours())+pad2(d.getUTCMinutes())+pad2(d.getUTCSeconds())+"Z"; }
+function icsEsc(s){ return String(s||"").replace(/\\/g,"\\\\").replace(/\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;"); }
+function calEvent(m){
+  const dt=mDate(m); if(!dt) return null;
+  const rl=roundLabel(m), sc=m.score;
+  return {
+    start:dt, end:new Date(dt.getTime()+120*60000),
+    title:t().evTitle(m.home.name,m.away.name,rl),
+    desc:[ t().descMatch(m.home.name,m.away.name), rl?t().descRound(rl):"",
+      t().descWatch(dayLabel(dt),fmtTime(dt),tzLabel(dt)),
+      sc?t().descResult(sc[0],sc[1]):"", t().descSite ].filter(Boolean).join("\n"),
+    loc:""
+  };
+}
+function googleCalUrl(m){
+  const e=calEvent(m); if(!e) return "#";
+  const p=new URLSearchParams({action:"TEMPLATE",text:e.title,
+    dates:icsStamp(e.start)+"/"+icsStamp(e.end),details:e.desc,location:e.loc});
+  return "https://calendar.google.com/calendar/render?"+p.toString();
+}
+function outlookCalUrl(m){
+  const e=calEvent(m); if(!e) return "#";
+  const p=new URLSearchParams({path:"/calendar/action/compose",rru:"addevent",
+    subject:e.title,startdt:e.start.toISOString(),enddt:e.end.toISOString(),body:e.desc,location:e.loc});
+  return "https://outlook.live.com/calendar/0/deeplink/compose?"+p.toString();
+}
+function appleWebcalUrl(m){
+  const e=calEvent(m); if(!e) return "#";
+  const p=new URLSearchParams({title:e.title,start:icsStamp(e.start),end:icsStamp(e.end),
+    desc:e.desc,loc:e.loc,uid:"m"+m.id});
+  return "webcal://"+location.host+"/event.ics?"+p.toString();
+}
+function addToCalendar(id){
+  const m=MATCHES.find(x=>String(x.id)===String(id)); if(!m) return;
+  const e=calEvent(m); if(!e) return;
+  const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//WAWA//UCL2627//UK","CALSCALE:GREGORIAN","METHOD:PUBLISH",
+    "BEGIN:VEVENT","UID:ucl2627-"+m.id+"@ucl2627","DTSTAMP:"+icsStamp(new Date()),
+    "DTSTART:"+icsStamp(e.start),"DTEND:"+icsStamp(e.end),
+    "SUMMARY:"+icsEsc(e.title),"DESCRIPTION:"+icsEsc(e.desc),
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc(e.title),"TRIGGER:-PT30M","END:VALARM",
+    "END:VEVENT","END:VCALENDAR"].filter(Boolean).join("\r\n");
+  const blob=new Blob([ics],{type:"text/calendar;charset=utf-8"});
+  const url=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=url; a.download="ucl2627-"+m.id+".ics";
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },1500);
+}
+
+// ================== вкладки / статика ==================
+function show(v){
+  ["tb","sc","ko"].forEach(k=>{
+    document.getElementById("view-"+k).classList.toggle("active",v===k);
+    document.getElementById("tab-"+k).classList.toggle("active",v===k);
+  });
+  if(v==="sc") requestAnimationFrame(()=>{
+    const el=document.getElementById("focus-day");
+    if(el) el.scrollIntoView({block:"start",behavior:"auto"});
+  });
+}
+function applyStatic(){
+  const T=t(), sep='<span class="sep">·</span>';
+  document.title=T.title;
+  document.documentElement.lang=lang;
+  document.getElementById("h1").textContent=T.h1;
+  document.getElementById("sub").textContent=T.sub;
+  document.getElementById("tab-tb").textContent=T.tabTable;
+  document.getElementById("tab-sc").textContent=T.tabSchedule;
+  document.getElementById("tab-ko").textContent=T.tabKo;
+  document.getElementById("leg-tb").innerHTML=[`<span>${T.legTable}</span>`,`<span>${T.legClick}</span>`].join(sep);
+  document.getElementById("leg-sc").innerHTML=[`<span>${T.legTime(tzLabel())}</span>`,
+    `<span style="color:var(--green)">${T.legPub}</span>`,`<span style="color:var(--red)">${T.legLive}</span>`].join(sep);
+  document.getElementById("leg-ko").innerHTML=[`<span>${T.legKo}</span>`,`<span>${T.legClick}</span>`].join(sep);
+  document.querySelector("footer").textContent=T.footer;
+  const upd=document.getElementById("upd"); if(upd&&!MATCHES.length) upd.textContent=T.loading;
+  buildLangSwitch(); setHeaderH();
+}
+function buildLangSwitch(){
+  const box=document.getElementById("lang"); box.innerHTML="";
+  SUPPORTED.forEach(l=>{
+    const b=document.createElement("button"); b.textContent=LANGNAME[l];
+    if(l===lang) b.className="on";
+    b.onclick=()=>setLang(l);
+    box.appendChild(b);
+  });
+}
+function setLang(l){
+  if(!SUPPORTED.includes(l)||l===lang) return;
+  lang=l; try{ localStorage.setItem("ucl_lang",l); }catch(e){}
+  applyStatic(); render();
+}
+function setHeaderH(){
+  const h=document.querySelector("header");
+  if(h) document.documentElement.style.setProperty("--hh",h.offsetHeight+"px");
+}
+window.addEventListener("resize",()=>{ clearTimeout(window._rt); window._rt=setTimeout(setHeaderH,150); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
+
+applyStatic();
+load();
+setInterval(load,60000);
+</script>
+</body>
+</html>
