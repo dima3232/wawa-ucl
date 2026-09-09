@@ -71,6 +71,7 @@
 
   /* ===== РОЗКЛАД ===== */
   .sched{max-width:760px;margin:0 auto}
+  .day-h .rl{color:var(--dim);font-weight:600;text-transform:none;letter-spacing:0}
   .day-h{position:sticky;top:var(--hh,60px);scroll-margin-top:calc(var(--hh,60px) + 10px);background:linear-gradient(180deg,var(--bg),rgba(11,16,32,.85));
     padding:10px 4px 6px;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.5px;
     border-bottom:1px solid #232f56;margin-top:10px;text-transform:capitalize;backdrop-filter:blur(6px)}
@@ -85,7 +86,7 @@
   .srow.done{opacity:.6}
   .srow .time{font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;flex:0 0 56px;width:56px;color:var(--txt);text-align:center}
   .srow .time small{display:block;font-size:9px;font-weight:600;color:var(--dim);letter-spacing:1px}
-  .srow .rnd{font-size:10px;color:var(--dim);flex:0 0 44px;width:44px;text-transform:uppercase;text-align:center}
+  .srow .cntcol{flex:0 0 52px;width:52px;display:flex;align-items:center;justify-content:center}
   .srow .pair{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
   .srow .tm{display:flex;align-items:center;gap:8px;font-size:14px;min-width:0}
   .srow .tm .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -114,7 +115,14 @@
   .auth b{color:var(--txt);font-weight:700}
   .auth button{all:unset;cursor:pointer;color:var(--dim);text-decoration:underline;font-size:11px}
   .auth button:hover{color:var(--txt)}
-  .cnt{display:block;margin-top:3px;font-size:10px;font-weight:800;color:var(--green);letter-spacing:0}
+  /* три цифри стовпчиком: ширина колонки стала, тож нічого не зсувається */
+  .cnt{display:inline-flex;flex-direction:column;gap:3px;font-variant-numeric:tabular-nums}
+  .cnt .c{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:900;line-height:1}
+  .cnt .c::before{content:"";width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+  .cnt .c.i{color:var(--green)}   .cnt .c.i::before{background:var(--green)}
+  .cnt .c.m{color:var(--gold)}    .cnt .c.m::before{background:var(--gold)}
+  .cnt .c.o{color:#5a648a}        .cnt .c.o::before{background:#3a4467}
+  .cnt .c.z{opacity:.35}
   .rsvp{border-top:1px solid #243057;padding-top:14px;margin-top:12px}
   .rsvp-h{font-size:12px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:9px}
   .rsvp-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
@@ -192,7 +200,7 @@
     .sched{max-width:100%}
     .day-h{font-size:12px;padding:9px 4px 5px}
     .srow{gap:8px;padding:9px 6px}
-    .srow .rnd{flex:0 0 34px;width:34px;min-width:0;font-size:9px}
+    .srow .cntcol{flex:0 0 44px;width:44px}
     .heat{flex:0 0 58px;width:58px}
     .heat b{font-size:14px}
     .heat small{font-size:8px;letter-spacing:0}
@@ -320,6 +328,7 @@ const I18N={
     hot4:"топ", hot3:"варто", hot2:"норм", hot1:"прохідний",
     fAll:"Усі матчі", fHot:"🔥 Тільки цікаві", noHot:"Цікавих матчів у цьому списку немає.",
     heatLbl:"Вартий перегляду:", legHeat:"оцінка 1–10 — наскільки матч вартий перегляду",
+    legCnt:"цифри: <b style=\'color:#3fd07d\'>йдуть</b> / <b style=\'color:#f4c64a\'>можливо</b> / не йдуть",
     legTime:z=>`час у твоєму поясі (${z})`, legLive:"LIVE — матч триває",
     legKo:"Пари плей-оф — у два матчі, показано суму",
     z1:"1–8 → одразу 1/8 фіналу", z2:"9–24 → раунд плей-оф", z3:"25–36 → виліт",
@@ -336,6 +345,7 @@ const I18N={
     statNA:"Статистика недоступна", statLiveTag:"наживо",
     stLbl:{possession:"Володіння",xg:"xG",sot:"Удари у створ",shots:"Удари",bigch:"Явні моменти",
       corners:"Кутові",offsides:"Офсайди",fouls:"Фоли",cards:"Картки"},
+    goLbl:"йдуть", mbLbl:"можл.",
     rsvpTitle:"Хто йде в бар", rIn:"Іду", rMaybe:"Можливо", rOut:"Не іду",
     whoIn:"Йдуть", whoMaybe:"Можливо", whoOut:"Не йдуть", whoNone:"Поки ніхто не записався",
     needLogin:"Увійди через Telegram у шапці — і зможеш записатись", logout:"вийти",
@@ -358,6 +368,7 @@ const I18N={
     hot4:"must-see", hot3:"worth it", hot2:"decent", hot1:"skippable",
     fAll:"All matches", fHot:"🔥 Best only", noHot:"No stand-out matches in this list.",
     heatLbl:"Worth watching:", legHeat:"1–10 rating — how much the match is worth watching",
+    legCnt:"numbers: <b style=\'color:#3fd07d\'>going</b> / <b style=\'color:#f4c64a\'>maybe</b> / can't",
     legTime:z=>`times in your zone (${z})`, legLive:"LIVE — match in progress",
     legKo:"Knockout ties are two-legged; aggregate shown",
     z1:"1–8 → straight to Round of 16", z2:"9–24 → knockout play-off", z3:"25–36 → eliminated",
@@ -374,6 +385,7 @@ const I18N={
     statNA:"Statistics unavailable", statLiveTag:"live",
     stLbl:{possession:"Possession",xg:"xG",sot:"Shots on target",shots:"Shots",bigch:"Big chances",
       corners:"Corners",offsides:"Offsides",fouls:"Fouls",cards:"Cards"},
+    goLbl:"going", mbLbl:"maybe",
     rsvpTitle:"Who's coming", rIn:"I'm in", rMaybe:"Maybe", rOut:"Can't",
     whoIn:"Going", whoMaybe:"Maybe", whoOut:"Not going", whoNone:"Nobody signed up yet",
     needLogin:"Sign in with Telegram in the header to join", logout:"sign out",
@@ -445,10 +457,6 @@ const KO_ORDER=["Round of 32","Round of 16","Quarter-finals","Semi-finals","Fina
 function lsNum(m){ const x=LS_RE.exec(m.round||""); return x? +x[1] : 0; }
 const isLS=m=>lsNum(m)>0;
 const isKO=m=>KO_ORDER.includes(m.round||"");
-function roundShort(m){
-  const n=lsNum(m); if(n) return (lang==="uk"?"Т":"MD")+n;
-  return t().rKoShort[m.round]||m.round||"";
-}
 function roundLabel(m){
   const n=lsNum(m); if(n) return t().rTour(n);
   return t().rKo[m.round]||m.round||"";
@@ -549,7 +557,7 @@ function buildSchedule(){
     if(dk!==curDay){
       curDay=dk;
       const isFocus=!focusSet && dk>=today; if(isFocus) focusSet=true;
-      html+=`<div class="day-h${isFocus?" focus":""}"${isFocus?' id="focus-day"':""}>${dayLabel(dt)}</div>`;
+      html+=`<div class="day-h${isFocus?" focus":""}"${isFocus?' id="focus-day"':""}>${dayLabel(dt)} <span class="rl">· ${roundLabel(m)}</span></div>`;
     }
     const live=liveNow(m), done=isDone(m), sc=m.score;
     const h=matchHeat(m), hot=h>=9;
@@ -558,7 +566,11 @@ function buildSchedule(){
     const timeSub=done?"":live?T.liveNow:tzLabel(dt);
     html+=`<div class="srow${hot&&!done?" hot":""}${live?" live":""}${(isToday(dt)&&!done&&!live)?" today":""}${done?" done":""}" onclick="openMatch(${m.id})">
       <div class="time">${timeMain}<small>${timeSub}</small></div>
-      <div class="rnd">${roundShort(m)}${(()=>{const n=rsvpFor(m.id).in.length;return n?`<span class="cnt">👥${n}</span>`:"";})()}</div>
+      <div class="cntcol">${(()=>{const r=rsvpFor(m.id);
+        const n=r.in.length, mb=r.maybe.length, no=r.out.length;
+        if(!n&&!mb&&!no) return "";                       // ніхто не відповів — колонка порожня
+        const c=(cls,v,ttl)=>`<span class="c ${cls}${v?"":" z"}" title="${ttl}">${v}</span>`;
+        return `<span class="cnt">${c("i",n,T.whoIn)}${c("m",mb,T.whoMaybe)}${c("o",no,T.whoOut)}</span>`;})()}</div>
       <div class="pair">
         ${teamRowHtml(m.home, sc?sc[0]:"–", w1?"w":w2?"l":"")}
         ${teamRowHtml(m.away, sc?sc[1]:"–", w2?"w":w1?"l":"")}
@@ -902,7 +914,8 @@ function applyStatic(){
   document.getElementById("tab-ko").textContent=T.tabKo;
   document.getElementById("leg-tb").innerHTML=[`<span>${T.legTable}</span>`,`<span>${T.legClick}</span>`].join(sep);
   document.getElementById("leg-sc").innerHTML=[`<span>${T.legTime(tzLabel())}</span>`,
-    `<span style="color:#ff7847">${T.legHeat}</span>`,`<span style="color:var(--red)">${T.legLive}</span>`].join(sep);
+    `<span style="color:#ff7847">${T.legHeat}</span>`,`<span>${T.legCnt}</span>`,
+    `<span style="color:var(--red)">${T.legLive}</span>`].join(sep);
   document.getElementById("leg-ko").innerHTML=[`<span>${T.legKo}</span>`,`<span>${T.legClick}</span>`].join(sep);
   document.querySelector("footer").textContent=T.footer;
   const upd=document.getElementById("upd"); if(upd&&!MATCHES.length) upd.textContent=T.loading;
