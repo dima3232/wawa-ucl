@@ -11,6 +11,10 @@ export default {
     if (url.pathname === "/event.ics") return eventIcs(url);
     if (url.pathname === "/fixtures")  return fixturesRoute(env);
     if (url.pathname === "/stats")     return statsRoute(url, env);
+    if (url.pathname === "/tg/info")   return tgInfoRoute(env);
+    if (url.pathname === "/tg/auth")   return tgAuthRoute(request, env);
+    if (url.pathname === "/logout")    return logoutRoute();
+    if (url.pathname === "/rsvp")      return request.method === "POST" ? rsvpPost(request, env) : rsvpGet(request, env);
     return env.ASSETS.fetch(request);
   },
   async scheduled(event, env, ctx) {
@@ -245,6 +249,126 @@ async function poll(env) {
     await fetchStats(env, m, true);
     done++;
   }
+}
+
+// ===================== Telegram-логін + бронювання =====================
+const enc = new TextEncoder();
+const toHex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+
+async function tgToken(env) {
+  const b = env.TG_BOT;
+  if (!b) return null;
+  return typeof b.get === "function" ? await b.get() : b;
+}
+async function hmac(keyBytes, msg) {
+  const k = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return await crypto.subtle.sign("HMAC", k, enc.encode(msg));
+}
+
+// username бота питаємо в самого Telegram і кешуємо — щоб не вписувати його руками
+async function botUsername(env) {
+  const cached = await env.UCL_KV.get("ucl:bot", "json");
+  if (cached && cached.username) return cached.username;
+  const token = await tgToken(env);
+  if (!token) return null;
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+    const j = await r.json();
+    const username = j && j.ok && j.result ? j.result.username : null;
+    if (username) await env.UCL_KV.put("ucl:bot", JSON.stringify({ username, at: Date.now() }), { expirationTtl: 604800 });
+    return username;
+  } catch (e) { return null; }
+}
+async function tgInfoRoute(env) {
+  return json({ username: await botUsername(env) }, 200, 300);
+}
+
+// підпис даних від Telegram Login Widget (офіційна схема: HMAC-SHA256, ключ = SHA256(токен))
+async function tgVerify(env, data) {
+  const token = await tgToken(env);
+  if (!token || !data || !data.hash) return null;
+  const { hash, ...rest } = data;
+  const check = Object.keys(rest).sort().map(k => `${k}=${rest[k]}`).join("\n");
+  const secret = await crypto.subtle.digest("SHA-256", enc.encode(token));
+  const sig = toHex(await hmac(secret, check));
+  if (sig !== String(hash).toLowerCase()) return null;
+  if (Math.abs(Date.now() / 1000 - Number(rest.auth_date || 0)) > 86400) return null;  // не старше доби
+  return rest;
+}
+
+// сесія: підписана кука, без окремого сховища
+const SESSION_MS = 180 * 86400000;
+async function sessionSign(env, uid) {
+  const token = await tgToken(env);
+  const payload = `${uid}.${Date.now() + SESSION_MS}`;
+  return `${payload}.${toHex(await hmac(enc.encode(token), payload))}`;
+}
+async function sessionRead(env, cookieHeader) {
+  const m = /(?:^|;\s*)s=([^;]+)/.exec(cookieHeader || "");
+  if (!m) return null;
+  const raw = decodeURIComponent(m[1]);
+  const i = raw.lastIndexOf(".");
+  if (i < 0) return null;
+  const payload = raw.slice(0, i), sig = raw.slice(i + 1);
+  const token = await tgToken(env);
+  if (!token) return null;
+  if (toHex(await hmac(enc.encode(token), payload)) !== sig) return null;
+  const dot = payload.lastIndexOf(".");
+  const uid = payload.slice(0, dot), exp = Number(payload.slice(dot + 1));
+  if (!uid || !exp || Date.now() > exp) return null;
+  return uid;
+}
+
+async function tgAuthRoute(request, env) {
+  let data;
+  try { data = await request.json(); } catch (e) { return json({ error: "bad-json" }, 400); }
+  const u = await tgVerify(env, data);
+  if (!u) return json({ error: "bad-signature" }, 401);
+  const uid = "tg:" + u.id;
+  const name = [u.first_name, u.last_name].filter(Boolean).join(" ") || u.username || "Гість";
+  await env.DB.prepare(
+    `INSERT INTO users(id,name,username,photo,created_at) VALUES(?,?,?,?,?)
+     ON CONFLICT(id) DO UPDATE SET name=excluded.name, username=excluded.username, photo=excluded.photo`
+  ).bind(uid, name, u.username || null, u.photo_url || null, Date.now()).run();
+  const cookie = await sessionSign(env, uid);
+  return new Response(JSON.stringify({ ok: true, user: { id: uid, name, photo: u.photo_url || null } }), {
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Set-Cookie": `s=${encodeURIComponent(cookie)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MS / 1000}`
+    }
+  });
+}
+function logoutRoute() {
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Set-Cookie": "s=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0"
+    }
+  });
+}
+
+async function rsvpGet(request, env) {
+  const uid = await sessionRead(env, request.headers.get("Cookie"));
+  const rows = (await env.DB.prepare(
+    `SELECT r.match_id, r.user_id, r.status, u.name, u.photo, u.username
+       FROM rsvp r JOIN users u ON u.id = r.user_id`
+  ).all()).results || [];
+  let me = null;
+  if (uid) me = await env.DB.prepare(`SELECT id,name,photo,username FROM users WHERE id=?`).bind(uid).first();
+  return json({ me, rows });
+}
+async function rsvpPost(request, env) {
+  const uid = await sessionRead(env, request.headers.get("Cookie"));
+  if (!uid) return json({ error: "unauthorized" }, 401);
+  let b;
+  try { b = await request.json(); } catch (e) { return json({ error: "bad-json" }, 400); }
+  const match = String(b.match || ""), status = String(b.status || "");
+  if (!match || !["in", "maybe", "out"].includes(status)) return json({ error: "bad-params" }, 400);
+  await env.DB.prepare(
+    `INSERT INTO rsvp(match_id,user_id,status,updated_at) VALUES(?,?,?,?)
+     ON CONFLICT(match_id,user_id) DO UPDATE SET status=excluded.status, updated_at=excluded.updated_at`
+  ).bind(match, uid, status, Date.now()).run();
+  return json({ ok: true });
 }
 
 // ===================== календарна подія =====================

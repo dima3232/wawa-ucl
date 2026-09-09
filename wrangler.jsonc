@@ -10,9 +10,14 @@
   "kv_namespaces": [
     { "binding": "UCL_KV", "id": "badae86725984c3ab08a1ed7ecfe5e04" }
   ],
-  // ключ Highlightly зі спільного Secrets Store (значення не в репозиторії)
+  // база бронювань (хто йде на матч) — окрема, безкоштовна, не засинає
+  "d1_databases": [
+    { "binding": "DB", "database_name": "wawa-ucl-rsvp", "database_id": "f115f8dd-c431-4221-b416-5905a688ce15" }
+  ],
+  // ключі зі спільного Secrets Store (значення не в репозиторії)
   "secrets_store_secrets": [
-    { "binding": "HIGHLIGHTLY_KEY", "store_id": "ed8c1e4b8aa24976844b6ada365fa834", "secret_name": "HIGHLIGHTLY_KEY" }
+    { "binding": "HIGHLIGHTLY_KEY", "store_id": "ed8c1e4b8aa24976844b6ada365fa834", "secret_name": "HIGHLIGHTLY_KEY" },
+    { "binding": "TG_BOT", "store_id": "ed8c1e4b8aa24976844b6ada365fa834", "secret_name": "TG_WAWA_BOT_KEY" }
   ],
   // зона challango.com у цьому ж акаунті, тож домен підключається нативно
   "routes": [

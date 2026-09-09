@@ -108,6 +108,32 @@
   .filt button.on{color:#0b1020;background:var(--gold);border-color:var(--gold)}
   .m-heat{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 12px;font-size:13px;color:var(--dim)}
   .m-heat b{font-size:20px;font-weight:900}
+  /* авторизація + бронювання */
+  .auth{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim)}
+  .auth img{width:22px;height:22px;border-radius:50%;object-fit:cover}
+  .auth b{color:var(--txt);font-weight:700}
+  .auth button{all:unset;cursor:pointer;color:var(--dim);text-decoration:underline;font-size:11px}
+  .auth button:hover{color:var(--txt)}
+  .cnt{display:block;margin-top:3px;font-size:10px;font-weight:800;color:var(--green);letter-spacing:0}
+  .rsvp{border-top:1px solid #243057;padding-top:14px;margin-top:12px}
+  .rsvp-h{font-size:12px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:9px}
+  .rsvp-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .rsvp-btns button{all:unset;cursor:pointer;padding:9px 16px;border-radius:11px;font-size:13px;font-weight:700;
+    background:#0e1530;border:1px solid #2a3a66;color:var(--txt)}
+  .rsvp-btns button:hover{border-color:var(--gold)}
+  .rsvp-btns button.on{background:var(--green);border-color:var(--green);color:#08210f}
+  .rsvp-btns button.on.no{background:#3a3f55;border-color:#3a3f55;color:var(--dim)}
+  .rsvp-btns button.on.mb{background:var(--gold);border-color:var(--gold);color:#2a2000}
+  .who{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+  .who-g{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.3px}
+  .who-l{display:flex;flex-wrap:wrap;gap:7px}
+  .who-p{display:flex;align-items:center;gap:6px;background:#0e1530;border:1px solid #2a3a66;
+    border-radius:999px;padding:3px 10px 3px 3px;font-size:12px}
+  .who-p img{width:20px;height:20px;border-radius:50%;object-fit:cover}
+  .who-p.mb{border-color:rgba(244,198,74,.5)}
+  .who-p.no{opacity:.5}
+  .who-none{color:#5a648a;font-size:12px}
+  .login-hint{text-align:center;color:#5a648a;font-size:12px;margin-top:8px}
   .m-heat.h4 b{color:#ff7847} .m-heat.h3 b{color:var(--gold)} .m-heat.h2 b{color:#7f8db5} .m-heat.h1 b{color:#4d5675}
 
   /* ===== ПЛЕЙ-ОФ (пари у два матчі) ===== */
@@ -233,6 +259,7 @@
     <button id="tab-sc" onclick="show('sc')">🔥 Hot or Not</button>
     <button id="tab-ko" onclick="show('ko')">🏆 Плей-оф</button>
   </div>
+  <div class="auth" id="auth"></div>
   <div class="lang" id="lang"></div>
   <div class="status"><span class="dot"></span><span id="upd">завантаження…</span></div>
 </header>
@@ -309,6 +336,9 @@ const I18N={
     statNA:"Статистика недоступна", statLiveTag:"наживо",
     stLbl:{possession:"Володіння",xg:"xG",sot:"Удари у створ",shots:"Удари",bigch:"Явні моменти",
       corners:"Кутові",offsides:"Офсайди",fouls:"Фоли",cards:"Картки"},
+    rsvpTitle:"Хто йде в бар", rIn:"Іду", rMaybe:"Можливо", rOut:"Не іду",
+    whoIn:"Йдуть", whoMaybe:"Можливо", whoOut:"Не йдуть", whoNone:"Поки ніхто не записався",
+    needLogin:"Увійди через Telegram у шапці — і зможеш записатись", logout:"вийти",
     calTitle:"📅 Додати в календар", calHint:"Усі три відкривають подію у твоєму календарі.",
     calIcs:"Завантажити .ics",
     evTitle:(a,b,r)=>`${a} – ${b} · ЛЧ${r?` (${r})`:""}`,
@@ -344,6 +374,9 @@ const I18N={
     statNA:"Statistics unavailable", statLiveTag:"live",
     stLbl:{possession:"Possession",xg:"xG",sot:"Shots on target",shots:"Shots",bigch:"Big chances",
       corners:"Corners",offsides:"Offsides",fouls:"Fouls",cards:"Cards"},
+    rsvpTitle:"Who's coming", rIn:"I'm in", rMaybe:"Maybe", rOut:"Can't",
+    whoIn:"Going", whoMaybe:"Maybe", whoOut:"Not going", whoNone:"Nobody signed up yet",
+    needLogin:"Sign in with Telegram in the header to join", logout:"sign out",
     calTitle:"📅 Add to calendar", calHint:"All three open the event in your calendar.",
     calIcs:"Download .ics",
     evTitle:(a,b,r)=>`${a} – ${b} · UCL${r?` (${r})`:""}`,
@@ -525,7 +558,7 @@ function buildSchedule(){
     const timeSub=done?"":live?T.liveNow:tzLabel(dt);
     html+=`<div class="srow${hot&&!done?" hot":""}${live?" live":""}${(isToday(dt)&&!done&&!live)?" today":""}${done?" done":""}" onclick="openMatch(${m.id})">
       <div class="time">${timeMain}<small>${timeSub}</small></div>
-      <div class="rnd">${roundShort(m)}</div>
+      <div class="rnd">${roundShort(m)}${(()=>{const n=rsvpFor(m.id).in.length;return n?`<span class="cnt">👥${n}</span>`:"";})()}</div>
       <div class="pair">
         ${teamRowHtml(m.home, sc?sc[0]:"–", w1?"w":w2?"l":"")}
         ${teamRowHtml(m.away, sc?sc[1]:"–", w2?"w":w1?"l":"")}
@@ -652,6 +685,7 @@ function openMatch(id){
     </div>
     <div class="m-heat ${heatClass(matchHeat(m))}"><span>${T.heatLbl}</span><b>${matchHeat(m)}/10</b><span>${heatWord(matchHeat(m))}</span></div>
     ${pens}${legsHtml}
+    ${rsvpBlock(m)}
     <div class="m-stats" id="m-stats"></div>
     <div class="m-actions">
       <div class="cal-title">${T.calTitle}</div>
@@ -759,6 +793,93 @@ function addToCalendar(id){
   setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },1500);
 }
 
+// ================== авторизація Telegram + бронювання ==================
+let ME=null, RSVP=[];
+
+async function loadRsvp(){
+  try{
+    const d=await (await fetch("/rsvp",{cache:"no-store"})).json();
+    ME=d.me||null; RSVP=d.rows||[];
+  }catch(e){ ME=null; RSVP=[]; }
+  renderAuth(); buildSchedule();
+}
+function rsvpFor(id){
+  const rows=RSVP.filter(x=>String(x.match_id)===String(id));
+  return {
+    in:rows.filter(r=>r.status==="in"),
+    maybe:rows.filter(r=>r.status==="maybe"),
+    out:rows.filter(r=>r.status==="out"),
+    mine:ME?((rows.find(r=>r.user_id===ME.id)||{}).status||null):null
+  };
+}
+function renderAuth(){
+  const box=document.getElementById("auth"); if(!box) return;
+  const T=t();
+  if(ME){
+    box.innerHTML=`<img src="${ME.photo||""}" alt=""><b>${ME.name}</b><button onclick="logout()">${T.logout}</button>`;
+    return;
+  }
+  box.innerHTML="";
+  mountTgLogin(box);
+}
+// віджет Telegram вимагає справжній <script>, тому вставляємо елементом, а не innerHTML
+let tgMounted=false;
+async function mountTgLogin(box){
+  if(tgMounted) return; tgMounted=true;
+  let username=null;
+  try{ username=(await (await fetch("/tg/info")).json()).username; }catch(e){}
+  if(!username){ tgMounted=false; return; }
+  const sc=document.createElement("script");
+  sc.async=true;
+  sc.src="https://telegram.org/js/telegram-widget.js?22";
+  sc.setAttribute("data-telegram-login",username);
+  sc.setAttribute("data-size","small");
+  sc.setAttribute("data-radius","10");
+  sc.setAttribute("data-onauth","onTgAuth(user)");
+  box.appendChild(sc);
+}
+window.onTgAuth=async function(user){
+  try{
+    const r=await fetch("/tg/auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(user)});
+    if(r.ok){ tgMounted=false; await loadRsvp(); }
+  }catch(e){}
+};
+async function logout(){
+  try{ await fetch("/logout",{method:"POST"}); }catch(e){}
+  ME=null; tgMounted=false; await loadRsvp();
+}
+async function setRsvp(id,status){
+  if(!ME) return;
+  const cur=rsvpFor(id).mine;
+  const next=(cur===status)?null:status;         // повторний клік знімає вибір
+  if(next===null){
+    // немає окремого DELETE — просто ставимо «не йду»
+    if(status==="out") return;
+  }
+  try{
+    const r=await fetch("/rsvp",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({match:String(id),status:next||status})});
+    if(!r.ok) return;
+  }catch(e){ return; }
+  await loadRsvp();
+  openMatch(id);                                  // перемалювати попап з новим станом
+}
+function rsvpBlock(m){
+  const T=t(), r=rsvpFor(m.id);
+  const btn=(st,cls,lbl)=>`<button class="${r.mine===st?"on "+cls:""}" onclick="setRsvp(${m.id},'${st}')">${lbl}</button>`;
+  const chip=(p,cls)=>`<span class="who-p ${cls}"><img src="${p.photo||""}" alt="">${p.name}</span>`;
+  const group=(list,label,cls)=> list.length
+    ? `<div><div class="who-g">${label} · ${list.length}</div><div class="who-l">${list.map(p=>chip(p,cls)).join("")}</div></div>` : "";
+  const any=r.in.length||r.maybe.length||r.out.length;
+  return `<div class="rsvp">
+    <div class="rsvp-h">${T.rsvpTitle}</div>
+    ${ME?`<div class="rsvp-btns">${btn("in","","✅ "+T.rIn)}${btn("maybe","mb","🤔 "+T.rMaybe)}${btn("out","no","✖️ "+T.rOut)}</div>`
+        :`<div class="login-hint">${T.needLogin}</div>`}
+    <div class="who">${any?[group(r.in,T.whoIn,""),group(r.maybe,T.whoMaybe,"mb"),group(r.out,T.whoOut,"no")].filter(Boolean).join("")
+                       :`<div class="who-none">${T.whoNone}</div>`}</div>
+  </div>`;
+}
+
 // ================== вкладки / статика ==================
 function show(v){
   ["tb","sc","ko"].forEach(k=>{
@@ -810,6 +931,7 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
 
 applyStatic();
 load();
+loadRsvp();
 setInterval(load,60000);
 </script>
 </body>
