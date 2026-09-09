@@ -4,3 +4,4 @@ fixtures2026
 .claude/
 .wrangler/
 node_modules/
+rsvp

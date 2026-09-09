@@ -11,3 +11,4 @@ fixtures2026
 .wrangler
 node_modules
 schema.sql
+rsvp

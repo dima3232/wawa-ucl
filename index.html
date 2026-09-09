@@ -112,6 +112,8 @@
   /* авторизація + бронювання */
   .auth{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim)}
   .auth img{width:22px;height:22px;border-radius:50%;object-fit:cover}
+  .auth .ini{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:#2a3a66;color:var(--txt);font-size:11px;font-weight:800}
   .auth b{color:var(--txt);font-weight:700}
   .auth button{all:unset;cursor:pointer;color:var(--dim);text-decoration:underline;font-size:11px}
   .auth button:hover{color:var(--txt)}
@@ -138,6 +140,8 @@
   .who-p{display:flex;align-items:center;gap:6px;background:#0e1530;border:1px solid #2a3a66;
     border-radius:999px;padding:3px 10px 3px 3px;font-size:12px}
   .who-p img{width:20px;height:20px;border-radius:50%;object-fit:cover}
+  .who-p .ini{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:#2a3a66;color:var(--txt);font-size:10px;font-weight:800;flex:0 0 auto}
   .who-p.mb{border-color:rgba(244,198,74,.5)}
   .who-p.no{opacity:.5}
   .who-none{color:#5a648a;font-size:12px}
@@ -480,7 +484,11 @@ async function load(){
     if(!MATCHES.length) document.getElementById("table").innerHTML=t().loadErr(e.message);
   }
 }
-function render(){ buildTable(); buildSchedule(); buildBracket(); }
+function render(){
+  // демо-дані можна побудувати лише коли вже відомий список матчів
+  if(DEMO && !RSVP.length && MATCHES.length){ const d=demoData(); ME=d.me; RSVP=d.rows; renderAuth(); }
+  buildTable(); buildSchedule(); buildBracket();
+}
 
 // ================== таблиця лігової фази ==================
 function computeTable(){
@@ -808,7 +816,27 @@ function addToCalendar(id){
 // ================== авторизація Telegram + бронювання ==================
 let ME=null, RSVP=[];
 
+// ?demo=1 — показати, як усе виглядає із заповненими даними. Нічого не пише в базу.
+const DEMO = new URLSearchParams(location.search).get("demo")==="1";
+function demoData(){
+  const names=["Дмитро","Олексій","Марко","Ігор","Тарас","Юрій","Богдан","Влад"];
+  const plan=[[5,2,1],[2,1,0],[0,0,0],[7,1,0],[1,3,2],[0,0,0],[0,2,0],[3,0,1]];
+  const ms=MATCHES.filter(m=>m.ts).sort((a,b)=>a.ts-b.ts);
+  const rows=[];
+  plan.forEach((spec,i)=>{
+    const m=ms[i]; if(!m) return;
+    let k=0;
+    ["in","maybe","out"].forEach((st,si)=>{
+      for(let j=0;j<spec[si];j++,k++){
+        const n=names[k%names.length];
+        rows.push({match_id:String(m.id),user_id:"demo:"+k+":"+i,status:st,name:n,photo:null,username:null});
+      }
+    });
+  });
+  return {me:{id:"demo:0:0",name:"Дмитро",photo:null,username:"demo"},rows};
+}
 async function loadRsvp(){
+  if(DEMO){ const d=demoData(); ME=d.me; RSVP=d.rows; renderAuth(); buildSchedule(); return; }
   try{
     const d=await (await fetch("/rsvp",{cache:"no-store"})).json();
     ME=d.me||null; RSVP=d.rows||[];
@@ -828,10 +856,11 @@ function renderAuth(){
   const box=document.getElementById("auth"); if(!box) return;
   const T=t();
   if(ME){
-    box.innerHTML=`<img src="${ME.photo||""}" alt=""><b>${ME.name}</b><button onclick="logout()">${T.logout}</button>`;
+    box.innerHTML=`${ME.photo?`<img src="${ME.photo}" alt="">`:`<span class="ini">${(ME.name||"?").trim().charAt(0).toUpperCase()}</span>`}<b>${ME.name}</b><button onclick="logout()">${T.logout}</button>`;
     return;
   }
   box.innerHTML="";
+  if(DEMO){ box.innerHTML='<b style="color:var(--gold)">DEMO</b>'; return; }
   mountTgLogin(box);
 }
 // віджет Telegram вимагає справжній <script>, тому вставляємо елементом, а не innerHTML
@@ -862,6 +891,11 @@ async function logout(){
 }
 async function setRsvp(id,status){
   if(!ME) return;
+  if(DEMO){                                    // демо: міняємо лише локальний стан
+    RSVP=RSVP.filter(r=>!(String(r.match_id)===String(id) && r.user_id===ME.id));
+    RSVP.push({match_id:String(id),user_id:ME.id,status,name:ME.name,photo:null,username:null});
+    buildSchedule(); openMatch(id); return;
+  }
   const cur=rsvpFor(id).mine;
   const next=(cur===status)?null:status;         // повторний клік знімає вибір
   if(next===null){
@@ -879,7 +913,8 @@ async function setRsvp(id,status){
 function rsvpBlock(m){
   const T=t(), r=rsvpFor(m.id);
   const btn=(st,cls,lbl)=>`<button class="${r.mine===st?"on "+cls:""}" onclick="setRsvp(${m.id},'${st}')">${lbl}</button>`;
-  const chip=(p,cls)=>`<span class="who-p ${cls}"><img src="${p.photo||""}" alt="">${p.name}</span>`;
+  const ava=p=>p.photo?`<img src="${p.photo}" alt="">`:`<span class="ini">${(p.name||"?").trim().charAt(0).toUpperCase()}</span>`;
+  const chip=(p,cls)=>`<span class="who-p ${cls}">${ava(p)}${p.name}</span>`;
   const group=(list,label,cls)=> list.length
     ? `<div><div class="who-g">${label} · ${list.length}</div><div class="who-l">${list.map(p=>chip(p,cls)).join("")}</div></div>` : "";
   const any=r.in.length||r.maybe.length||r.out.length;
