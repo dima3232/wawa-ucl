@@ -475,8 +475,12 @@ async function botUsername(env) {
     return username;
   } catch (e) { return null; }
 }
+// bot_id — це префікс токена; він не секретний (Telegram сам світить його в oauth-URL),
+// і без нього не запустити redirect-флоу входу
 async function tgInfoRoute(env) {
-  return json({ username: await botUsername(env) }, 200, 300);
+  const token = await tgToken(env);
+  const botId = token ? String(token).split(":")[0] : null;
+  return json({ username: await botUsername(env), bot_id: botId }, 200, 300);
 }
 
 // підпис даних від Telegram Login Widget (офіційна схема: HMAC-SHA256, ключ = SHA256(токен))

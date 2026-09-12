@@ -126,11 +126,14 @@
     background:#152b4a;border:1px solid #2a3a66;border-radius:999px;padding:5px 11px 5px 7px;
     font-size:12px;font-weight:700;color:var(--txt);white-space:nowrap;line-height:1}
   .auth .tgbtn:hover{border-color:#2AABEE}
+  .auth .tgbtn.busy{opacity:.6;pointer-events:none}
   .auth .tgbtn svg{width:17px;height:17px;flex:0 0 auto;display:block}
   .tgpop{position:absolute;top:calc(100% + 8px);right:0;z-index:60;background:var(--card);
     border:1px solid #2a3a66;border-radius:12px;padding:10px;box-shadow:0 12px 34px rgba(0,0,0,.55);
     min-width:150px;min-height:36px;display:flex;align-items:center;justify-content:center}
   .tgpop:empty::after{content:"…";color:var(--dim);font-size:14px}
+  .tgpop.hint{flex-direction:column;gap:7px;max-width:210px}
+  .tghint{color:var(--dim);font-size:11px;line-height:1.35;text-align:center}
   .auth img{width:22px;height:22px;border-radius:50%;object-fit:cover}
   .auth .ini{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
     background:#2a3a66;color:var(--txt);font-size:11px;font-weight:800}
@@ -435,6 +438,7 @@ const I18N={
     whoIn:"Йдуть", whoMaybe:"Можливо", whoOut:"Не йдуть", whoNone:"Поки ніхто не записався",
     needLogin:"Увійди через Telegram у шапці — і зможеш записатись", logout:"вийти",
     login:"Увійти", loginTitle:"Увійти через Telegram",
+    loginRetry:"Не вдалось — спробуй офіційною кнопкою:",
     calTitle:"📅 Додати в календар", calHint:"Усі три відкривають подію у твоєму календарі.",
     calIcs:"Завантажити .ics",
     evTitle:(a,b,r)=>`${a} – ${b} · ЛЧ${r?` (${r})`:""}`,
@@ -476,6 +480,7 @@ const I18N={
     whoIn:"Going", whoMaybe:"Maybe", whoOut:"Not going", whoNone:"Nobody signed up yet",
     needLogin:"Sign in with Telegram in the header to join", logout:"sign out",
     login:"Sign in", loginTitle:"Sign in with Telegram",
+    loginRetry:"That didn't go through — try the official button:",
     calTitle:"📅 Add to calendar", calHint:"All three open the event in your calendar.",
     calIcs:"Download .ics",
     evTitle:(a,b,r)=>`${a} – ${b} · UCL${r?` (${r})`:""}`,
@@ -1181,16 +1186,70 @@ function renderAuth(){
   box.innerHTML="";
   if(DEMO){ box.innerHTML='<b style="color:var(--gold)">DEMO</b>'; return; }
   if(!TG_OK) return;
-  box.innerHTML=`<button class="tgbtn" onclick="toggleTgPop(event)" title="${T.loginTitle}" aria-label="${T.loginTitle}">${TG_SVG}<span class="tgl">${T.login}</span></button>`;
+  box.innerHTML=`<button class="tgbtn" onclick="tgLogin(event)" title="${T.loginTitle}" aria-label="${T.loginTitle}">${TG_SVG}<span class="tgl">${T.login}</span></button>`;
 }
 const TG_SVG=`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2AABEE"></circle><path fill="#fff" d="M5.6 11.9l10.4-4c.5-.2.9.1.7.8l-1.8 8.3c-.1.6-.5.7-1 .4l-2.6-1.9-1.3 1.2c-.1.1-.3.2-.5.2l.2-2.7 5-4.5c.2-.2 0-.3-.3-.1l-6.2 3.9-2.1-.7c-.5-.2-.5-.6-.1-.8z"></path></svg>`;
-// справжній віджет вантажимо лише коли його попросили — так у шапці стоїть наша кнопка
-function toggleTgPop(ev){
+// Вхід без чужої кнопки: віджет Telegram — це iframe, клікнути його зсередини сторінки
+// не можна, тому йдемо тим самим шляхом, що й він сам — redirect-флоу oauth.telegram.org.
+// Назад Telegram віддає підписаний результат у #tgAuthResult, підпис перевіряє воркер.
+async function tgLogin(ev){
+  if(ev) ev.stopPropagation();
+  const btn=document.querySelector(".tgbtn");
+  if(btn) btn.classList.add("busy");
+  let info=null;
+  try{ info=await (await fetch("/tg/info")).json(); }catch(e){}
+  if(!info||!info.bot_id){                              // не знаємо bot_id — лишається офіційний віджет
+    if(btn) btn.classList.remove("busy");
+    return toggleTgPop(ev);
+  }
+  const back=location.origin+location.pathname;
+  try{ sessionStorage.setItem("tg_try", String(Date.now())); }catch(e){}
+  const u=new URL("https://oauth.telegram.org/auth");
+  u.searchParams.set("bot_id", info.bot_id);
+  u.searchParams.set("origin", location.origin);
+  u.searchParams.set("return_to", back);
+  location.href=u.toString();
+}
+// повернення з Telegram: #tgAuthResult=<base64url(JSON)>
+function tgAuthFromHash(){
+  const m=/[#&]tgAuthResult=([A-Za-z0-9_\-=]+)/.exec(location.hash||"");
+  if(!m) return null;
+  history.replaceState(null,"",location.pathname+location.search);   // прибираємо з адреси
+  try{
+    let b=m[1].replace(/-/g,"+").replace(/_/g,"/");
+    while(b.length%4) b+="=";
+    const bin=atob(b);
+    const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));               // імена бувають кирилицею
+  }catch(e){ return null; }
+}
+async function tgFinishLogin(){
+  let tried=0;
+  try{ tried=+(sessionStorage.getItem("tg_try")||0); sessionStorage.removeItem("tg_try"); }catch(e){}
+  const user=tgAuthFromHash();
+  if(user){
+    try{
+      const r=await fetch("/tg/auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(user)});
+      if(r.ok){ await loadRsvp(); return true; }
+    }catch(e){}
+  }
+  // повернулись із Telegram, а входу не сталось — не лишаємо людину ні з чим,
+  // одразу відкриваємо офіційний віджет
+  if(tried && Date.now()-tried < 10*60000){
+    await loadRsvp();
+    if(!ME) setTimeout(()=>toggleTgPop(null,true),300);
+    return true;
+  }
+  return false;
+}
+// запасний шлях: якщо redirect-флоу не склався, показуємо офіційний віджет поповером
+function toggleTgPop(ev,hint){
   if(ev) ev.stopPropagation();
   const box=document.getElementById("auth"); if(!box) return;
   if(box.querySelector(".tgpop")) return closeTgPop();
   const pop=document.createElement("div");
-  pop.className="tgpop";
+  pop.className="tgpop"+(hint?" hint":"");
+  if(hint) pop.innerHTML=`<div class="tghint">${t().loginRetry}</div>`;
   box.appendChild(pop);
   tgMounted=false;
   mountTgLogin(pop);
@@ -1325,7 +1384,7 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeModal(); clo
 
 applyStatic();
 load();
-loadRsvp();
+tgFinishLogin().then(ok=>{ if(!ok) loadRsvp(); });
 setInterval(load,60000);
 </script>
 </body>
