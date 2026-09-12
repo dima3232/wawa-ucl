@@ -28,10 +28,19 @@
   a{color:var(--accent)}
   header{position:sticky;top:0;z-index:30;backdrop-filter:blur(10px);
     background:linear-gradient(180deg,rgba(11,16,32,.92),rgba(11,16,32,.7));
-    border-bottom:1px solid #20294a;padding:12px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-  header h1{font-size:18px;margin:0;letter-spacing:.3px}
-  header .sub{color:var(--dim);font-size:12px}
-  .spacer{flex:1}
+    border-bottom:1px solid #20294a;padding:10px 18px;display:flex;flex-direction:column;gap:9px}
+  .hrow{display:flex;align-items:center;gap:14px;min-width:0}
+  .hrow2{flex-wrap:wrap}
+  header .logo{font-size:22px;line-height:1;flex:0 0 auto}
+  header .ttl{min-width:0}
+  header h1{font-size:18px;margin:0;letter-spacing:.3px;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  header .sub{color:var(--dim);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* мова — у правому верхньому куті; статус притиснутий до неї праворуч,
+     щоб не зʼїжджав разом із довжиною назви чемпіонату */
+  .hrow1 .status{margin-left:auto;flex:0 0 auto;justify-content:flex-end}
+  .hrow1 .lang{flex:0 0 auto}
+  .hrow2 .auth{margin-left:auto}
   .tabs{display:flex;gap:6px;background:#0e1530;border:1px solid #20294a;border-radius:999px;padding:4px}
   .tabs button{all:unset;cursor:pointer;padding:7px 16px;border-radius:999px;font-size:13px;color:var(--dim);font-weight:600}
   .tabs button.active{background:var(--card2);color:var(--txt);box-shadow:0 1px 0 #2a3a66}
@@ -191,12 +200,12 @@
 
   @media (max-width:600px){
     .wrap{padding:10px 6px}
-    header{padding:7px 10px;gap:5px 8px}
+    header{padding:7px 10px;gap:7px}
     header h1{font-size:13px;line-height:1.15}
     header .sub{display:none}
-    header>span:first-child{font-size:17px}
-    .spacer{display:none}
-    .status{order:2;margin-left:auto;font-size:10px}
+    header .logo{font-size:17px}
+    .hrow{gap:8px}
+    .hrow1 .status{font-size:10px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .tabs{order:3;width:100%;padding:3px}
     .tabs button{flex:1;text-align:center;padding:7px 4px;font-size:11px}
     .legend{font-size:10px;gap:4px 8px;margin:8px 0 4px;padding:0 6px}
@@ -308,42 +317,28 @@
   .ev.away{text-align:right;grid-template-columns:1fr 22px 42px}
   .ev.away .mi{text-align:right}
 
-  /* ---------- коефіцієнти ---------- */
-  .odds{display:flex;flex-direction:column;gap:7px}
-  .odd-row{display:grid;grid-template-columns:1fr repeat(3,52px);gap:6px;align-items:center;font-size:12px}
-  .odd-row .bk{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .odd-row i{font-style:normal;text-align:center;font-weight:800;font-variant-numeric:tabular-nums;
-    background:#0e1530;border:1px solid #24305a;border-radius:8px;padding:5px 0}
-  .odd-row i.best{border-color:var(--green);color:var(--green)}
-  .odd-h{display:grid;grid-template-columns:1fr repeat(3,52px);gap:6px;font-size:10px;color:#5a648a;
-    text-transform:uppercase;letter-spacing:.4px}
-  .odd-h span{text-align:center}
-  .odd-h span:first-child{text-align:left}
-  .odd-extra{margin-top:10px;border-top:1px solid #1b2444;padding-top:10px;display:flex;flex-direction:column;gap:7px}
-  .odd-x{display:flex;align-items:center;gap:8px;font-size:12px}
-  .odd-x span{color:var(--dim);flex:1}
-  .odd-x i{font-style:normal;font-weight:800;font-variant-numeric:tabular-nums;background:#0e1530;
-    border:1px solid #24305a;border-radius:8px;padding:5px 9px;white-space:nowrap}
-  .odd-note{margin-top:9px;color:#5a648a;font-size:10.5px}
 </style>
 </head>
 <body>
 <header>
-  <span style="font-size:22px">⭐</span>
-  <div>
-    <h1 id="h1">Ліга чемпіонів 2026/27</h1>
-    <div class="sub" id="sub">Лігова фаза та плей-оф · оновлюється автоматично</div>
+  <div class="hrow hrow1">
+    <span class="logo">⭐</span>
+    <div class="ttl">
+      <h1 id="h1">Ліга чемпіонів 2026/27</h1>
+      <div class="sub" id="sub">Лігова фаза та плей-оф · оновлюється автоматично</div>
+    </div>
+    <div class="status"><span class="dot"></span><span id="upd">завантаження…</span></div>
+    <div class="lang" id="lang"></div>
   </div>
-  <div class="spacer"></div>
-  <div class="lgtabs" id="lgtabs"></div>
-  <div class="tabs">
-    <button id="tab-tb" class="active" onclick="show('tb')">📊 Таблиця</button>
-    <button id="tab-sc" onclick="show('sc')">🔥 Hot or Not</button>
-    <button id="tab-ko" onclick="show('ko')">🏆 Плей-оф</button>
+  <div class="hrow hrow2">
+    <div class="lgtabs" id="lgtabs"></div>
+    <div class="tabs">
+      <button id="tab-tb" class="active" onclick="show('tb')">📊 Таблиця</button>
+      <button id="tab-sc" onclick="show('sc')">🔥 Hot or Not</button>
+      <button id="tab-ko" onclick="show('ko')">🏆 Плей-оф</button>
+    </div>
+    <div class="auth" id="auth"></div>
   </div>
-  <div class="auth" id="auth"></div>
-  <div class="lang" id="lang"></div>
-  <div class="status"><span class="dot"></span><span id="upd">завантаження…</span></div>
 </header>
 
 <div class="wrap">
@@ -478,44 +473,36 @@ function t(){ return I18N[lang]||I18N.en; }
 const EXTRA={
   uk:{
     lgTitle:{ucl:"⭐ Ліга чемпіонів 2026/27",apl:"🦁 Прем'єр-ліга 2026/27",laliga:"🇪🇸 Ла Ліга 2026/27"},
-    lgH1:{ucl:"Ліга чемпіонів 2026/27",apl:"Прем'єр-ліга 2026/27",laliga:"Ла Ліга 2026/27"},
-    lgSub:{ucl:"Лігова фаза та плей-оф · оновлюється автоматично",
-      apl:"38 турів · оновлюється автоматично",laliga:"38 турів · оновлюється автоматично"},
+    lgH1:{ucl:"Ліга чемпіонів",apl:"Прем'єр-ліга",laliga:"Ла Ліга"},
+    lgSub:{ucl:"2026/27 · лігова фаза та плей-оф · оновлюється автоматично",
+      apl:"2026/27 · 38 турів · оновлюється автоматично",
+      laliga:"2026/27 · 38 турів · оновлюється автоматично"},
     lgShort:{ucl:"⭐ ЛЧ",apl:"🦁 АПЛ",laliga:"🇪🇸 Ла Ліга"},
     legTableL:"20 команд, 38 турів · порядок і тай-брейки — з джерела",
     zl1:"1–4 → Ліга чемпіонів", zl2:"5 → Ліга Європи", zl3:"18–20 → виліт",
     tableEmptyL:"Тур ще не зіграно.<br>Тут з'явиться таблиця всіх 20 команд.",
     fRound:n=>"Тур "+n, provisional:"час попередній",
-    mtStats:"Статистика", mtLine:"Склади", mtEv:"Події", mtOdds:"Коефіцієнти",
+    mtStats:"Статистика", mtLine:"Склади", mtEv:"Події",
     stGrp:{main:"Головне",shots:"Удари",pass:"Паси",duel:"Дуелі й оборона",disc:"Дисципліна"},
     lineSoon:"Склади з'являються за 40 хвилин до початку", lineNA:"Складів немає", subsLbl:"Запасні",
     evNone:"Подій ще немає", evSoon:"Події з'являться після початку матчу",
-    oddsPlan:"Коефіцієнти недоступні на безкоштовному плані джерела",
-    oddsNone:"Коефіцієнтів на цей матч немає", oddsClosed:"Матч почався — прематч-кефи закриті",
-    odBook:"Букмекер", odOu:"Тотал 2.5 гола", odOver:"більше", odUnder:"менше",
-    odBtts:"Обидві заб'ють", odYes:"так", odNo:"ні",
-    odNote:"прематч-кефи джерела, найвищий у стовпці — зеленим; не порада ставити",
     derby:"дербі"
   },
   en:{
     lgTitle:{ucl:"⭐ Champions League 2026/27",apl:"🦁 Premier League 2026/27",laliga:"🇪🇸 La Liga 2026/27"},
-    lgH1:{ucl:"Champions League 2026/27",apl:"Premier League 2026/27",laliga:"La Liga 2026/27"},
-    lgSub:{ucl:"League phase & knockouts · updates automatically",
-      apl:"38 matchdays · updates automatically",laliga:"38 matchdays · updates automatically"},
+    lgH1:{ucl:"Champions League",apl:"Premier League",laliga:"La Liga"},
+    lgSub:{ucl:"2026/27 · league phase & knockouts · updates automatically",
+      apl:"2026/27 · 38 matchdays · updates automatically",
+      laliga:"2026/27 · 38 matchdays · updates automatically"},
     lgShort:{ucl:"⭐ UCL",apl:"🦁 EPL",laliga:"🇪🇸 La Liga"},
     legTableL:"20 teams, 38 matchdays · order and tie-breaks come from the source",
     zl1:"1–4 → Champions League", zl2:"5 → Europa League", zl3:"18–20 → relegation",
     tableEmptyL:"No matchday played yet.<br>The full 20-team table will appear here.",
     fRound:n=>"Matchday "+n, provisional:"time provisional",
-    mtStats:"Statistics", mtLine:"Lineups", mtEv:"Events", mtOdds:"Odds",
+    mtStats:"Statistics", mtLine:"Lineups", mtEv:"Events",
     stGrp:{main:"Key",shots:"Shooting",pass:"Passing",duel:"Duels & defending",disc:"Discipline"},
     lineSoon:"Lineups appear 40 minutes before kick-off", lineNA:"No lineups", subsLbl:"Substitutes",
     evNone:"No events yet", evSoon:"Events appear after kick-off",
-    oddsPlan:"Odds are not available on the source's free plan",
-    oddsNone:"No odds for this match", oddsClosed:"Match started — prematch odds closed",
-    odBook:"Bookmaker", odOu:"Total goals 2.5", odOver:"over", odUnder:"under",
-    odBtts:"Both teams to score", odYes:"yes", odNo:"no",
-    odNote:"source prematch odds, best in column in green; not betting advice",
     derby:"derby"
   }
 };
@@ -958,7 +945,7 @@ let PANE="st", PANEM=null, paneReq=0;
 function initPanes(m){ PANEM=m; PANE="st"; openPane("st"); }
 function renderPaneTabs(){
   const T=t(), box=document.getElementById("m-tabs"); if(!box) return;
-  box.innerHTML=[["st",T.mtStats],["ln",T.mtLine],["ev",T.mtEv],["od",T.mtOdds]]
+  box.innerHTML=[["st",T.mtStats],["ln",T.mtLine],["ev",T.mtEv]]
     .map(([k,lbl])=>`<button class="${PANE===k?"on":""}" onclick="openPane('${k}')">${lbl}</button>`).join("");
 }
 function openPane(k){
@@ -968,15 +955,14 @@ function openPane(k){
   const started=m.ts&&Date.now()>=m.ts;
   if(!started&&(k==="st"||k==="ev")){ box.innerHTML=`<div class="stats-none">${k==="st"?T.statSoon:T.evSoon}</div>`; return; }
   box.innerHTML=`<div class="stats-load">${T.statLoading}</div>`;
-  const url=k==="st"?"/stats":k==="ln"?"/lineup":k==="ev"?"/events":"/odds";
+  const url=k==="st"?"/stats":k==="ln"?"/lineup":"/events";
   fetch(url+"?id="+encodeURIComponent(m.id)+"&lg="+LG,{cache:"no-store"})
     .then(r=>r.json())
     .then(d=>{
       if(my!==paneReq) return;
       if(k==="st") renderStats(box,d,m);
       else if(k==="ln") renderLineup(box,d,m);
-      else if(k==="ev") renderEvents(box,d,m);
-      else renderOdds(box,d,m);
+      else renderEvents(box,d,m);
     })
     .catch(()=>{ if(my===paneReq) box.innerHTML=`<div class="stats-none">${T.statNA}</div>`; });
 }
@@ -1075,32 +1061,6 @@ function renderEvents(box,d,m){
       : `<div class="ev away">${who}<div class="ic">${ic}</div>${mi}</div>`;
   }).join("");
   box.innerHTML=`<div class="evs">${html}</div>`;
-}
-
-// ---- коефіцієнти: 1X2 по букмекерах + тотал 2.5 + обидві заб'ють ----
-function renderOdds(box,d,m){
-  const T=t();
-  if(!d||d.status==="plan"){ box.innerHTML=`<div class="stats-none">${T.oddsPlan}</div>`; return; }
-  if(d.status==="closed"){ box.innerHTML=`<div class="stats-none">${T.oddsClosed}</div>`; return; }
-  if(d.status!=="ok"||!d.books||!d.books.length){ box.innerHTML=`<div class="stats-none">${T.oddsNone}</div>`; return; }
-  const books=d.books;
-  const best=(pick,i)=>Math.max(...books.map(b=>(b[pick]&&+b[pick][i])||0));
-  const cell=(v,pick,i)=>`<i class="${v&&+v===best(pick,i)?"best":""}">${v?(+v).toFixed(2):"–"}</i>`;
-  const rows=books.map(b=>
-    `<div class="odd-row"><span class="bk">${b.book}</span>`+
-    cell(b.r&&b.r[0],"r",0)+cell(b.r&&b.r[1],"r",1)+cell(b.r&&b.r[2],"r",2)+`</div>`).join("");
-  // додаткові ринки — одним рядком, найкращий кеф серед букмекерів
-  const extra=[];
-  const anyOu=books.some(b=>b.ou), anyBt=books.some(b=>b.btts);
-  if(anyOu) extra.push(`<div class="odd-x"><span>${T.odOu}</span>`+
-    `<i>${T.odOver} ${best("ou",0).toFixed(2)}</i><i>${T.odUnder} ${best("ou",1).toFixed(2)}</i></div>`);
-  if(anyBt) extra.push(`<div class="odd-x"><span>${T.odBtts}</span>`+
-    `<i>${T.odYes} ${best("btts",0).toFixed(2)}</i><i>${T.odNo} ${best("btts",1).toFixed(2)}</i></div>`);
-  box.innerHTML=
-    `<div class="odd-h"><span>${T.odBook}</span><span>1</span><span>X</span><span>2</span></div>`+
-    `<div class="odds">${rows}</div>`+
-    (extra.length?`<div class="odd-extra">${extra.join("")}</div>`:"")+
-    `<div class="odd-note">${T.odNote}</div>`;
 }
 
 // ================== календар ==================
@@ -1204,9 +1164,14 @@ function renderAuth(){
   if(DEMO){ box.innerHTML='<b style="color:var(--gold)">DEMO</b>'; return; }
   mountTgLogin(box);
 }
+// віджет Telegram прив'язаний до домену бота: на localhost він малює лише
+// «Bot domain invalid», тому там його просто не вставляємо
+const TG_OK=!/^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname)
+  && !location.hostname.endsWith(".local");
 // віджет Telegram вимагає справжній <script>, тому вставляємо елементом, а не innerHTML
 let tgMounted=false;
 async function mountTgLogin(box){
+  if(!TG_OK) return;
   if(tgMounted) return; tgMounted=true;
   let username=null;
   try{ username=(await (await fetch("/tg/info")).json()).username; }catch(e){}

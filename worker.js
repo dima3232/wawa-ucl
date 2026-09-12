@@ -4,7 +4,6 @@
 // /stats?id=&lg=     → статистика матчу (усі показники джерела) з кешу KV; ліниво добирає
 // /lineup?id=&lg=    → склади: схема, 11 по лініях, запасні
 // /events?id=&lg=    → голи, картки, заміни, VAR
-// /odds?id=&lg=      → прематч-коефіцієнти (на Basic джерело віддає 401)
 // /event.ics         → подія матчу як text/calendar (для webcal:// на iOS/macOS)
 // cron               → опитування в межах ліміту ПЛАНУ: ліміт і залишок читаємо
 //                      з заголовків джерела, тож після апгрейду інтервал стискається сам.
@@ -19,7 +18,6 @@ export default {
     if (p === "/stats")     return statsRoute(url, env);
     if (p === "/lineup")    return lineupRoute(url, env);
     if (p === "/events")    return eventsRoute(url, env);
-    if (p === "/odds")      return oddsRoute(url, env);
     if (p === "/tg/info")   return tgInfoRoute(env);
     if (p === "/tg/auth")   return tgAuthRoute(request, env);
     if (p === "/logout")    return logoutRoute();
@@ -60,7 +58,6 @@ const FULL_TTL   = 24 * 3600 * 1000;     // повний список сезон
 const STAND_TTL  = 3 * 3600 * 1000;      // таблиця з джерела
 const MATCH_MS   = 150 * 60 * 1000;      // вікно «матч іде»
 const FINAL_MS   = 180 * 60 * 1000;      // після цього матч вважаємо завершеним
-const ODDS_TTL   = 30 * 60 * 1000;       // прематч-коефіцієнти
 const BACKFILL_FREE = 2, BACKFILL_PAID = 8;
 
 // які показники залишаємо (за displayName у відповіді джерела) — усі, що воно віддає
@@ -368,69 +365,6 @@ async function eventsRoute(url, env) {
   }
   if (!rec) return json({ status: started ? "pending" : "notstarted" }, 200, 60);
   return json({ status: "ok", final: rec.final, at: rec.at, list: rec.list }, 200, 60);
-}
-
-// ===================== коефіцієнти =====================
-// на безкоштовному плані джерело віддає 401 — запам'ятовуємо це на 6 годин,
-// щоб не витрачати квоту на завідомо недоступний ендпойнт
-// форма відповіді: data[].odds[] — по одному рядку на (букмекер × ринок),
-// назва букмекера саме там. Беремо три ринки, які має сенс показувати в барі.
-const OD_1X2  = /^full time result$/i;
-const OD_OU   = /^total goals 2\.5$/i;
-const OD_BTTS = /^both teams to score$/i;
-function mapOdds(entries) {
-  const by = new Map();
-  for (const e of entries) {
-    for (const o of (e.odds || [])) {
-      const bk = o.bookmakerName || "", mk = o.market || "";
-      if (!bk) continue;
-      const kind = OD_1X2.test(mk) ? "r" : OD_OU.test(mk) ? "ou" : OD_BTTS.test(mk) ? "btts" : null;
-      if (!kind) continue;
-      if (!by.has(bk)) by.set(bk, { book: bk });
-      const rec = by.get(bk);
-      const val = re => {
-        const v = (o.values || []).find(x => re.test(String(x.value || "")));
-        return v ? +v.odd : null;
-      };
-      if (kind === "r")    rec.r = [val(/^home$/i), val(/^draw$/i), val(/^away$/i)];
-      if (kind === "ou")   rec.ou = [val(/^over$/i), val(/^under$/i)];
-      if (kind === "btts") rec.btts = [val(/^yes$/i), val(/^no$/i)];
-    }
-  }
-  const books = [...by.values()].filter(b => b.r && b.r.some(Boolean));
-  // спершу ті, у кого є всі три ринки — щоб рядки не були напівпорожні
-  books.sort((a, b) => ((b.ou ? 1 : 0) + (b.btts ? 1 : 0)) - ((a.ou ? 1 : 0) + (a.btts ? 1 : 0)));
-  return books.slice(0, 6);
-}
-async function fetchOdds(env, m) {
-  const r = await hlFetch(env, `/odds?matchId=${m.id}&oddsType=prematch&limit=5`);
-  if (r.status === 401 || r.status === 403) {
-    await env.UCL_KV.put("hl:odds:off", "1", { expirationTtl: 3600 });
-    return { plan: true };
-  }
-  const entries = (r.data && Array.isArray(r.data.data)) ? r.data.data : (Array.isArray(r.data) ? r.data : null);
-  if (!entries || !entries.length) return null;
-  const books = mapOdds(entries);
-  if (!books.length) return null;
-  const rec = { v: 2, at: Date.now(), books };
-  await env.UCL_KV.put("hl:odds:" + m.id, JSON.stringify(rec), { expirationTtl: 7 * 86400 });
-  return rec;
-}
-async function oddsRoute(url, env) {
-  const { m } = await findMatch(env, url);
-  if (!m) return json({ status: "no-match" }, 200, 300);
-  if (await env.UCL_KV.get("hl:odds:off")) return json({ status: "plan" }, 200, 300);
-  let rec = await env.UCL_KV.get("hl:odds:" + m.id, "json");
-  if (rec && rec.v !== 2) rec = null;
-  const now = Date.now();
-  const pre = m.ts && now < m.ts;                                  // коефіцієнти цікаві до початку
-  if (pre && (!rec || (now - rec.at) > ODDS_TTL) && (await quota(env)).rem > 3) {
-    const fresh = await fetchOdds(env, m);
-    if (fresh && fresh.plan) return json({ status: "plan" }, 200, 300);
-    if (fresh) rec = fresh;
-  }
-  if (!rec) return json({ status: pre ? "none" : "closed" }, 200, 120);
-  return json({ status: "ok", at: rec.at, books: rec.books }, 200, 120);
 }
 
 // ===================== фонове опитування =====================
