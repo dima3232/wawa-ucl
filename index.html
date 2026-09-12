@@ -256,6 +256,75 @@
   .st-row .st-l{text-align:left;font-weight:800;font-variant-numeric:tabular-nums}
   .st-row .st-r{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
   .st-row .st-m{color:var(--dim);font-size:12px;white-space:nowrap}
+
+  /* ---------- перемикач ліг ---------- */
+  .lgtabs{display:flex;gap:6px;flex-wrap:wrap}
+  .lgtabs button{all:unset;cursor:pointer;padding:7px 13px;border-radius:11px;font-size:13px;font-weight:800;
+    color:var(--dim);background:#0e1530;border:1px solid #24305a;white-space:nowrap}
+  .lgtabs button:hover{border-color:#3a4a80;color:var(--txt)}
+  .lgtabs button.on{color:#0b1020;background:var(--gold);border-color:var(--gold)}
+
+  /* ---------- підвкладки в модалці ---------- */
+  .m-tabs{display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid #243057;margin-top:14px;padding-top:14px}
+  .m-tabs button{all:unset;cursor:pointer;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:800;
+    color:var(--dim);background:#0e1530;border:1px solid #24305a}
+  .m-tabs button.on{color:#0b1020;background:var(--txt);border-color:var(--txt)}
+  .m-tabs button[disabled]{opacity:.4;cursor:default}
+  .m-pane{margin-top:12px;min-height:40px}
+
+  /* ---------- групи статистики ---------- */
+  .st-grp{margin:12px 0 4px;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#5a648a}
+  .st-row.acc .st-l,.st-row.acc .st-r{color:var(--green)}
+
+  /* ---------- склади: поле ---------- */
+  .pitch{background:linear-gradient(#10391f,#0c2a17);border:1px solid #1d4a2b;border-radius:14px;
+    padding:8px 6px;display:flex;flex-direction:column;position:relative;overflow:hidden;min-height:430px}
+  .phalf{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;gap:4px;padding:4px 0}
+  .pitch::before{content:"";position:absolute;left:6%;right:6%;top:50%;height:1px;background:rgba(255,255,255,.16)}
+  .pitch::after{content:"";position:absolute;left:50%;top:50%;width:74px;height:74px;margin:-37px 0 0 -37px;
+    border:1px solid rgba(255,255,255,.16);border-radius:50%}
+  .pline{display:flex;justify-content:space-around;align-items:flex-start;gap:4px;position:relative;z-index:1}
+  .pl{width:60px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
+  .pl .sh{width:26px;height:26px;border-radius:8px 8px 10px 10px;display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:900;color:#0b1020;background:var(--gold);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+  .pl.away .sh{background:#dfe6ff;color:#12193a}
+  .pl .pn{font-size:9.5px;line-height:1.12;color:#eaf0ff;text-shadow:0 1px 3px rgba(0,0,0,.8);
+    max-width:64px;overflow:hidden;word-break:break-word}
+  .pteam{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;margin:8px 0 4px;color:var(--txt)}
+  .pteam img{width:18px;height:18px;object-fit:contain}
+  .pteam .frm{color:var(--dim);font-weight:700;font-variant-numeric:tabular-nums}
+  .subs{margin-top:8px;font-size:11.5px;color:var(--dim);line-height:1.7}
+  .subs b{color:#5a648a;font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:2px}
+  .subs span{white-space:nowrap}
+
+  /* ---------- події ---------- */
+  .evs{display:flex;flex-direction:column;gap:1px}
+  .ev{display:grid;grid-template-columns:42px 22px 1fr;gap:8px;align-items:baseline;padding:5px 0;border-top:1px solid #1b2444}
+  .ev:first-child{border-top:0}
+  .ev .mi{font-size:11.5px;font-weight:800;color:var(--dim);font-variant-numeric:tabular-nums}
+  .ev .ic{font-size:13px;text-align:center}
+  .ev .who{font-size:13px}
+  .ev .who small{display:block;color:#5a648a;font-size:10.5px}
+  .ev.away{text-align:right;grid-template-columns:1fr 22px 42px}
+  .ev.away .mi{text-align:right}
+
+  /* ---------- коефіцієнти ---------- */
+  .odds{display:flex;flex-direction:column;gap:7px}
+  .odd-row{display:grid;grid-template-columns:1fr repeat(3,52px);gap:6px;align-items:center;font-size:12px}
+  .odd-row .bk{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .odd-row i{font-style:normal;text-align:center;font-weight:800;font-variant-numeric:tabular-nums;
+    background:#0e1530;border:1px solid #24305a;border-radius:8px;padding:5px 0}
+  .odd-row i.best{border-color:var(--green);color:var(--green)}
+  .odd-h{display:grid;grid-template-columns:1fr repeat(3,52px);gap:6px;font-size:10px;color:#5a648a;
+    text-transform:uppercase;letter-spacing:.4px}
+  .odd-h span{text-align:center}
+  .odd-h span:first-child{text-align:left}
+  .odd-extra{margin-top:10px;border-top:1px solid #1b2444;padding-top:10px;display:flex;flex-direction:column;gap:7px}
+  .odd-x{display:flex;align-items:center;gap:8px;font-size:12px}
+  .odd-x span{color:var(--dim);flex:1}
+  .odd-x i{font-style:normal;font-weight:800;font-variant-numeric:tabular-nums;background:#0e1530;
+    border:1px solid #24305a;border-radius:8px;padding:5px 9px;white-space:nowrap}
+  .odd-note{margin-top:9px;color:#5a648a;font-size:10.5px}
 </style>
 </head>
 <body>
@@ -266,6 +335,7 @@
     <div class="sub" id="sub">Лігова фаза та плей-оф · оновлюється автоматично</div>
   </div>
   <div class="spacer"></div>
+  <div class="lgtabs" id="lgtabs"></div>
   <div class="tabs">
     <button id="tab-tb" class="active" onclick="show('tb')">📊 Таблиця</button>
     <button id="tab-sc" onclick="show('sc')">🔥 Hot or Not</button>
@@ -404,6 +474,84 @@ const I18N={
 };
 function t(){ return I18N[lang]||I18N.en; }
 
+// ================== словник для ліг, складів, подій, кефів ==================
+const EXTRA={
+  uk:{
+    lgTitle:{ucl:"⭐ Ліга чемпіонів 2026/27",apl:"🦁 Прем'єр-ліга 2026/27",laliga:"🇪🇸 Ла Ліга 2026/27"},
+    lgH1:{ucl:"Ліга чемпіонів 2026/27",apl:"Прем'єр-ліга 2026/27",laliga:"Ла Ліга 2026/27"},
+    lgSub:{ucl:"Лігова фаза та плей-оф · оновлюється автоматично",
+      apl:"38 турів · оновлюється автоматично",laliga:"38 турів · оновлюється автоматично"},
+    lgShort:{ucl:"⭐ ЛЧ",apl:"🦁 АПЛ",laliga:"🇪🇸 Ла Ліга"},
+    legTableL:"20 команд, 38 турів · порядок і тай-брейки — з джерела",
+    zl1:"1–4 → Ліга чемпіонів", zl2:"5 → Ліга Європи", zl3:"18–20 → виліт",
+    tableEmptyL:"Тур ще не зіграно.<br>Тут з'явиться таблиця всіх 20 команд.",
+    fRound:n=>"Тур "+n, provisional:"час попередній",
+    mtStats:"Статистика", mtLine:"Склади", mtEv:"Події", mtOdds:"Коефіцієнти",
+    stGrp:{main:"Головне",shots:"Удари",pass:"Паси",duel:"Дуелі й оборона",disc:"Дисципліна"},
+    lineSoon:"Склади з'являються за 40 хвилин до початку", lineNA:"Складів немає", subsLbl:"Запасні",
+    evNone:"Подій ще немає", evSoon:"Події з'являться після початку матчу",
+    oddsPlan:"Коефіцієнти недоступні на безкоштовному плані джерела",
+    oddsNone:"Коефіцієнтів на цей матч немає", oddsClosed:"Матч почався — прематч-кефи закриті",
+    odBook:"Букмекер", odOu:"Тотал 2.5 гола", odOver:"більше", odUnder:"менше",
+    odBtts:"Обидві заб'ють", odYes:"так", odNo:"ні",
+    odNote:"прематч-кефи джерела, найвищий у стовпці — зеленим; не порада ставити",
+    derby:"дербі"
+  },
+  en:{
+    lgTitle:{ucl:"⭐ Champions League 2026/27",apl:"🦁 Premier League 2026/27",laliga:"🇪🇸 La Liga 2026/27"},
+    lgH1:{ucl:"Champions League 2026/27",apl:"Premier League 2026/27",laliga:"La Liga 2026/27"},
+    lgSub:{ucl:"League phase & knockouts · updates automatically",
+      apl:"38 matchdays · updates automatically",laliga:"38 matchdays · updates automatically"},
+    lgShort:{ucl:"⭐ UCL",apl:"🦁 EPL",laliga:"🇪🇸 La Liga"},
+    legTableL:"20 teams, 38 matchdays · order and tie-breaks come from the source",
+    zl1:"1–4 → Champions League", zl2:"5 → Europa League", zl3:"18–20 → relegation",
+    tableEmptyL:"No matchday played yet.<br>The full 20-team table will appear here.",
+    fRound:n=>"Matchday "+n, provisional:"time provisional",
+    mtStats:"Statistics", mtLine:"Lineups", mtEv:"Events", mtOdds:"Odds",
+    stGrp:{main:"Key",shots:"Shooting",pass:"Passing",duel:"Duels & defending",disc:"Discipline"},
+    lineSoon:"Lineups appear 40 minutes before kick-off", lineNA:"No lineups", subsLbl:"Substitutes",
+    evNone:"No events yet", evSoon:"Events appear after kick-off",
+    oddsPlan:"Odds are not available on the source's free plan",
+    oddsNone:"No odds for this match", oddsClosed:"Match started — prematch odds closed",
+    odBook:"Bookmaker", odOu:"Total goals 2.5", odOver:"over", odUnder:"under",
+    odBtts:"Both teams to score", odYes:"yes", odNo:"no",
+    odNote:"source prematch odds, best in column in green; not betting advice",
+    derby:"derby"
+  }
+};
+for(const k in EXTRA) Object.assign(I18N[k], EXTRA[k]);
+const STL={
+  uk:{poss:"Володіння",xg:"xG",xa:"xA",bigch:"Явні моменти",shots:"Удари",sot:"Удари у створ",
+    soff:"Мимо",sblock:"Заблоковані",sin:"Удари зі штрафного майданця",sout:"Удари з-за штрафного",
+    sacc:"Точність ударів",pass:"Пасів усього",passok:"Точні паси",passpct:"Точність пасів",
+    passbad:"Втрачені паси",passown:"Паси у своїй половині",passopp:"Паси в чужій половині",
+    passf3:"Паси у фінальну третину",passback:"Паси назад",lp:"Довгі паси",lpok:"Точні довгі",
+    keyp:"Ключові паси",cross:"Навіси",crossok:"Точні навіси",throw:"Вкидання",
+    tkl:"Відбори",tklok:"Успішні відбори",air:"Повітряні дуелі",airok:"Виграні в повітрі",
+    drib:"Дриблінг",dribok:"Успішний дриблінг",intc:"Перехвати",clr:"Виноси",saves:"Сейви",gk:"Від воріт",
+    fouls:"Фоли",fk:"Штрафні",offsides:"Офсайди",cards:"Картки"},
+  en:{poss:"Possession",xg:"xG",xa:"xA",bigch:"Big chances",shots:"Shots",sot:"On target",
+    soff:"Off target",sblock:"Blocked",sin:"Shots in the box",sout:"Shots from outside",
+    sacc:"Shot accuracy",pass:"Passes",passok:"Accurate passes",passpct:"Pass accuracy",
+    passbad:"Misplaced passes",passown:"Passes own half",passopp:"Passes opposition half",
+    passf3:"Passes into final third",passback:"Backward passes",lp:"Long passes",lpok:"Accurate long",
+    keyp:"Key passes",cross:"Crosses",crossok:"Accurate crosses",throw:"Throw-ins",
+    tkl:"Tackles",tklok:"Tackles won",air:"Aerial duels",airok:"Aerials won",
+    drib:"Dribbles",dribok:"Dribbles won",intc:"Interceptions",clr:"Clearances",saves:"Saves",gk:"Goal kicks",
+    fouls:"Fouls",fk:"Free kicks",offsides:"Offsides",cards:"Cards"}
+};
+function stl(){ return STL[lang]||STL.en; }
+const ST_GROUPS=[
+  ["main",["poss","xg","xa","bigch"]],
+  ["shots",["shots","sot","soff","sblock","sin","sout","sacc"]],
+  ["pass",["pass","passok","passpct","passbad","passf3","passopp","keyp","cross","crossok","lp","lpok","throw"]],
+  ["duel",["tkl","tklok","air","airok","drib","dribok","intc","clr","saves"]],
+  ["disc",["fouls","fk","offsides","cards"]]
+];
+const ST_DEC=new Set(["xg","xa"]);
+const ST_PCT=new Set(["sacc"]);
+
+
 // ================== час ==================
 const MATCH_MS=150*60000;
 function mDate(m){ return m.ts? new Date(m.ts) : null; }
@@ -428,8 +576,30 @@ const TEAM_RATING={
   "Club Brugge KV":5,"Shakhtar Donetsk":5,"Lens":5,"Como":5,"Slavia Praha":5,"Bodø/Glimt":5,
   "AEK Athens FC":4,
   "LASK Linz":3,"Slovan Bratislava":3,"Viking":3,
-  "Sabah FA":2
+  "Sabah FA":2,
+  // ---- Прем'єр-ліга 2026/27 ----
+  "Newcastle United":8,"Chelsea":8,"Tottenham":7,"Brighton":6,"Everton":6,
+  "Nottingham Forest":6,"Crystal Palace":5,"Fulham":5,"Brentford":5,"Bournemouth":5,"Leeds":5,
+  "Sunderland":4,"Ipswich":4,"Hull City":3,"Coventry":3,
+  // ---- Ла Ліга 2026/27 ----
+  "Athletic Club":7,"Real Sociedad":6,"Sevilla FC":6,"Valencia":6,
+  "Celta de Vigo":5,"Osasuna":5,"Rayo Vallecano":5,
+  "Getafe":4,"Espanyol":4,"Alavés":4,"Deportivo La Coruña":4,
+  "Levante":3,"Elche":3,"Racing Santander":3,"Malaga":3
 };
+// матчі, які дивляться не за клас, а за ненависть
+const DERBIES=[
+  ["Liverpool","Everton"],["Manchester United","Manchester City"],["Arsenal","Tottenham"],
+  ["Chelsea","Tottenham"],["Chelsea","Arsenal"],["Newcastle United","Sunderland"],
+  ["Crystal Palace","Brighton"],["Chelsea","Fulham"],["Leeds","Manchester United"],
+  ["Real Madrid","Barcelona"],["Real Madrid","Atlético Madrid"],["Sevilla FC","Real Betis"],
+  ["Athletic Club","Real Sociedad"],["Barcelona","Espanyol"],["Valencia","Levante"],
+  ["Celta de Vigo","Deportivo La Coruña"],["Getafe","Rayo Vallecano"]
+];
+const DERBY_SET=new Set(DERBIES.map(([a,b])=>pairKey(a,b)));
+const isDerby=m=>DERBY_SET.has(pairKey(m.home.name,m.away.name));
+// у межах одного чемпіонату «європейський клас» стискається, тож шкалу розтягуємо по лізі
+const LG_SCALE={ucl:{lo:2,hi:10},apl:{lo:2.5,hi:9.6},laliga:{lo:2.5,hi:10}};
 const _rateByTok=(()=>{ const m={}; for(const k in TEAM_RATING) m[tokset(k)]=TEAM_RATING[k]; return m; })();
 function teamRating(name){
   if(TEAM_RATING[name]!=null) return TEAM_RATING[name];
@@ -443,13 +613,34 @@ function matchHeat(m){
   const lo=Math.min(a,b), hi=Math.max(a,b);
   let v=0.72*lo+0.28*hi;
   if(hi-lo<=1) v+=0.5*lo/10;
+  if(isDerby(m)) v+=1.5;                                  // дербі варте більше, ніж сума класів
+  const sc=LG_SCALE[LG]||LG_SCALE.ucl;
+  v=1+9*Math.max(0,Math.min(1,(v-sc.lo)/(sc.hi-sc.lo)));
   return Math.max(1,Math.min(10,Math.round(v)));
 }
 function heatClass(h){ return h>=9?"h4":h>=7?"h3":h>=5?"h2":"h1"; }
 function heatWord(h){ const T=t(); return h>=9?T.hot4:h>=7?T.hot3:h>=5?T.hot2:T.hot1; }
 
 // ================== дані ==================
-let MATCHES=[], UPDATED=0;
+const LGS=["ucl","apl","laliga"];
+const LG_KIND={ucl:"cup",apl:"league",laliga:"league"};
+let LG=(()=>{ try{ const v=localStorage.getItem("ucl_lg"); return LGS.includes(v)?v:"ucl"; }catch(e){ return "ucl"; } })();
+const isCup=()=>LG_KIND[LG]==="cup";
+let MATCHES=[], UPDATED=0, STAND=null;
+const LGCACHE={};                                        // код ліги → {matches, updated, stand}
+function setLg(code){
+  if(!LGS.includes(code)||code===LG) return;
+  LG=code; try{ localStorage.setItem("ucl_lg",code); }catch(e){}
+  schedMode=isCup()?"all":"round";
+  const c=LGCACHE[code];
+  MATCHES=c?c.matches:[]; UPDATED=c?c.updated:0; STAND=c?c.stand:null;
+  if(!isCup()&&document.getElementById("view-ko").classList.contains("active")) show("tb");
+  applyStatic(); render(); load();
+}
+function renderLgTabs(){
+  const box=document.getElementById("lgtabs"), T=t();
+  box.innerHTML=LGS.map(c=>`<button class="${c===LG?"on":""}" onclick="setLg('${c}')">${T.lgShort[c]}</button>`).join("");
+}
 const DONE_RE=/finish|full|ended|aet|pen|after/i;
 const isDone=m=>DONE_RE.test(m.status||"");
 function liveNow(m){
@@ -457,8 +648,9 @@ function liveNow(m){
   const now=Date.now(); return now>=m.ts && now<m.ts+MATCH_MS;
 }
 const LS_RE=/^League Stage - (\d+)$/i;
+const RS_RE=/^Regular Season - (\d+)$/i;                  // чемпіонати: «Regular Season - 12»
 const KO_ORDER=["Round of 32","Round of 16","Quarter-finals","Semi-finals","Final"];
-function lsNum(m){ const x=LS_RE.exec(m.round||""); return x? +x[1] : 0; }
+function lsNum(m){ const x=LS_RE.exec(m.round||"")||RS_RE.exec(m.round||""); return x? +x[1] : 0; }
 const isLS=m=>lsNum(m)>0;
 const isKO=m=>KO_ORDER.includes(m.round||"");
 function roundLabel(m){
@@ -467,15 +659,19 @@ function roundLabel(m){
 }
 
 async function load(){
+  const want=LG;
   try{
-    const r=await fetch("/fixtures?t="+Date.now(),{cache:"no-store"});
+    const r=await fetch("/fixtures?league="+want+"&t="+Date.now(),{cache:"no-store"});
     if(!r.ok) throw new Error("HTTP "+r.status);
     const d=await r.json();
     // дедуплікація за id: пагінація джерела інколи повертає той самий матч двічі
     const seen=new Map();
     for(const m of (d.matches||[])){ if(m&&m.id!=null&&m.home&&m.away&&m.home.name&&m.away.name) seen.set(m.id,m); }
+    if(want!==LG) return;                                // встигли перемкнути лігу
     MATCHES=[...seen.values()];
     UPDATED=d.updated||Date.now();
+    LGCACHE[want]={matches:MATCHES,updated:UPDATED,stand:STAND};
+    if(LG_KIND[want]==="league") loadStandings(want);
     render();
     document.getElementById("upd").textContent=
       t().updated(new Date().toLocaleTimeString(locale(),{hour:"2-digit",minute:"2-digit"}));
@@ -484,14 +680,37 @@ async function load(){
     if(!MATCHES.length) document.getElementById("table").innerHTML=t().loadErr(e.message);
   }
 }
+// таблиця з джерела: у Ла Лізі перший тай-брейк — особисті зустрічі, самі так не порахуємо
+async function loadStandings(code){
+  try{
+    const d=await (await fetch("/standings?league="+code,{cache:"no-store"})).json();
+    if(d&&d.status==="ok"&&d.groups&&d.groups.length){
+      const rows=d.groups[0].rows||[];
+      if(LGCACHE[code]) LGCACHE[code].stand=rows;
+      if(code===LG){ STAND=rows; buildTable(); }
+    }
+  }catch(e){}
+}
 function render(){
   // демо-дані можна побудувати лише коли вже відомий список матчів
   if(DEMO && !RSVP.length && MATCHES.length){ const d=demoData(); ME=d.me; RSVP=d.rows; renderAuth(); }
-  buildTable(); buildSchedule(); buildBracket();
+  const koBtn=document.getElementById("tab-ko");
+  if(koBtn) koBtn.style.display=isCup()?"":"none";
+  buildTable(); buildSchedule();
+  if(isCup()) buildBracket();
 }
 
 // ================== таблиця лігової фази ==================
 function computeTable(){
+  // якщо є таблиця з джерела — беремо її: порядок і тай-брейки там правильні для кожної ліги
+  if(STAND&&STAND.length){
+    return STAND.map(r=>{
+      const tt=r.t||{};
+      return {id:(r.team||{}).id,name:(r.team||{}).name,logo:(r.team||{}).logo,
+        p:tt.games||0,w:tt.wins||0,d:tt.draws||0,l:tt.loses||0,
+        gf:tt.scoredGoals||0,ga:tt.receivedGoals||0,pts:r.pts||0,pos:r.pos};
+    }).sort((x,y)=>(x.pos||99)-(y.pos||99));
+  }
   const rows=new Map();
   const touch=tm=>{
     if(!rows.has(tm.id)) rows.set(tm.id,{id:tm.id,name:tm.name,logo:tm.logo,p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0});
@@ -513,12 +732,13 @@ function computeTable(){
 function buildTable(){
   const box=document.getElementById("table"), key=document.getElementById("zone-key"), T=t();
   const rows=computeTable();
-  if(!rows.length){ box.innerHTML=`<div class="empty">${T.tableEmpty}</div>`; key.innerHTML=""; return; }
+  if(!rows.length){ box.innerHTML=`<div class="empty">${isCup()?T.tableEmpty:T.tableEmptyL}</div>`; key.innerHTML=""; return; }
   // поки не зіграно жодного матчу — це просто список учасників, зони не фарбуємо (інакше
   // «перша вісімка» виглядала б як результат, хоча це лише алфавіт)
   const started=rows.some(r=>r.p>0);
   const tr=rows.map((r,i)=>{
-    const pos=i+1, z=!started?"":pos<=8?"z1":pos<=24?"z2":"z3";
+    const pos=r.pos||i+1;
+    const z=!started?"":isCup()?(pos<=8?"z1":pos<=24?"z2":"z3"):(pos<=4?"z1":pos===5?"z2":pos>=18?"z3":"");
     return `<tr class="${z}">
       <td class="pos">${pos}</td>
       <td class="team"><div class="tw"><img class="crest" src="${r.logo||""}" alt="" loading="lazy"><span class="nm">${r.name}</span></div></td>
@@ -535,11 +755,12 @@ function buildTable(){
       <th class="c-opt">${T.thW}</th><th class="c-opt">${T.thD}</th><th class="c-opt">${T.thL}</th>
       <th class="c-opt">${T.thG}</th><th>${T.thGD}</th><th>${T.thPts}</th>
     </tr></thead><tbody>${tr}</tbody></table>`;
+  const zk=isCup()?[T.z1,T.z2,T.z3]:[T.zl1,T.zl2,T.zl3];
   key.innerHTML = started ? [
-    `<span><i style="background:rgba(63,208,125,.5)"></i>${T.z1}</span>`,
-    `<span><i style="background:rgba(244,198,74,.5)"></i>${T.z2}</span>`,
-    `<span><i style="background:#2a3450"></i>${T.z3}</span>`
-  ].join("") : `<span>${T.notStarted}</span>`;
+    `<span><i style="background:rgba(63,208,125,.5)"></i>${zk[0]}</span>`,
+    `<span><i style="background:rgba(244,198,74,.5)"></i>${zk[1]}</span>`,
+    `<span><i style="background:#2a3450"></i>${zk[2]}</span>`
+  ].join("") : `<span>${isCup()?T.notStarted:T.tableEmptyL}</span>`;
 }
 
 // ================== розклад ==================
@@ -547,17 +768,29 @@ function teamRowHtml(tm, sc, cls){
   return `<div class="tm ${cls}"><img class="crest" src="${tm.logo||""}" alt="" loading="lazy">
     <span class="nm">${tm.name}</span><span class="sc">${sc}</span></div>`;
 }
-let hotOnly=false;
-function setHot(v){ hotOnly=v; buildSchedule(); }
+let schedMode="all";                                      // all | hot | round
+function setHot(v){ schedMode=v?"hot":"all"; buildSchedule(); }
+function setMode(v){ schedMode=v; buildSchedule(); }
+// «поточний тур» — той, у якому найближчий незіграний матч (а якщо все зіграно, останній)
+function curRound(){
+  const now=Date.now();
+  const next=MATCHES.filter(m=>m.ts&&!isDone(m)).sort((a,b)=>a.ts-b.ts)[0];
+  if(next) return lsNum(next);
+  const last=MATCHES.filter(m=>m.ts).sort((a,b)=>b.ts-a.ts)[0];
+  return last?lsNum(last):0;
+}
 function buildSchedule(){
   const box=document.getElementById("sched"), T=t();
   const filt=document.getElementById("sched-filt");
   let list=MATCHES.filter(m=>m.ts).sort((a,b)=>a.ts-b.ts);
+  const cr=isCup()?0:curRound();
   if(filt) filt.innerHTML=
-    `<button class="${hotOnly?"":"on"}" onclick="setHot(false)">${T.fAll}</button>`+
-    `<button class="${hotOnly?"on":""}" onclick="setHot(true)">${T.fHot}</button>`;
-  if(hotOnly) list=list.filter(m=>matchHeat(m)>=7);
-  if(!list.length){ box.innerHTML=`<div class="empty">${hotOnly?T.noHot:T.tableEmpty}</div>`; return; }
+    (cr?`<button class="${schedMode==="round"?"on":""}" onclick="setMode('round')">${T.fRound(cr)}</button>`:"")+
+    `<button class="${schedMode==="all"?"on":""}" onclick="setMode('all')">${T.fAll}</button>`+
+    `<button class="${schedMode==="hot"?"on":""}" onclick="setMode('hot')">${T.fHot}</button>`;
+  if(schedMode==="hot") list=list.filter(m=>matchHeat(m)>=7);
+  if(schedMode==="round"&&cr) list=list.filter(m=>lsNum(m)===cr);
+  if(!list.length){ box.innerHTML=`<div class="empty">${schedMode==="hot"?T.noHot:(isCup()?T.tableEmpty:T.tableEmptyL)}</div>`; return; }
   const today=dayKey(new Date());
   let focusSet=false, html="", curDay="";
   for(const m of list){
@@ -706,7 +939,8 @@ function openMatch(id){
     <div class="m-heat ${heatClass(matchHeat(m))}"><span>${T.heatLbl}</span><b>${matchHeat(m)}/10</b><span>${heatWord(matchHeat(m))}</span></div>
     ${pens}${legsHtml}
     ${rsvpBlock(m)}
-    <div class="m-stats" id="m-stats"></div>
+    <div class="m-tabs" id="m-tabs"></div>
+    <div class="m-pane" id="m-pane"></div>
     <div class="m-actions">
       <div class="cal-title">${T.calTitle}</div>
       <div class="cal-row">
@@ -717,49 +951,156 @@ function openMatch(id){
       <div class="cal-hint">${T.calHint} <a href="#" onclick="addToCalendar(${m.id});return false">${T.calIcs}</a></div>
     </div>`;
   document.getElementById("modal").classList.add("show");
-  loadStats(m);
+  initPanes(m);
 }
-async function loadStats(m){
-  const box=document.getElementById("m-stats"); if(!box) return;
-  box.innerHTML="";
-  if(!m.ts||Date.now()<m.ts) return;                       // ще не почався
-  const T=t();
-  box.innerHTML=`<div class="stats-h">${T.statsTitle}</div><div class="stats-load">${T.statLoading}</div>`;
-  const my=++statsReq;
-  try{
-    const d=await (await fetch("/stats?id="+encodeURIComponent(m.id),{cache:"no-store"})).json();
-    if(my!==statsReq) return;
-    renderStats(box,d,m);
-  }catch(e){
-    if(my===statsReq) box.innerHTML=`<div class="stats-h">${T.statsTitle}</div><div class="stats-none">${T.statNA}</div>`;
-  }
+// ================== панелі матчу: статистика / склади / події / кефи ==================
+let PANE="st", PANEM=null, paneReq=0;
+function initPanes(m){ PANEM=m; PANE="st"; openPane("st"); }
+function renderPaneTabs(){
+  const T=t(), box=document.getElementById("m-tabs"); if(!box) return;
+  box.innerHTML=[["st",T.mtStats],["ln",T.mtLine],["ev",T.mtEv],["od",T.mtOdds]]
+    .map(([k,lbl])=>`<button class="${PANE===k?"on":""}" onclick="openPane('${k}')">${lbl}</button>`).join("");
 }
+function openPane(k){
+  PANE=k; renderPaneTabs();
+  const box=document.getElementById("m-pane"), m=PANEM; if(!box||!m) return;
+  const T=t(), my=++paneReq;
+  const started=m.ts&&Date.now()>=m.ts;
+  if(!started&&(k==="st"||k==="ev")){ box.innerHTML=`<div class="stats-none">${k==="st"?T.statSoon:T.evSoon}</div>`; return; }
+  box.innerHTML=`<div class="stats-load">${T.statLoading}</div>`;
+  const url=k==="st"?"/stats":k==="ln"?"/lineup":k==="ev"?"/events":"/odds";
+  fetch(url+"?id="+encodeURIComponent(m.id)+"&lg="+LG,{cache:"no-store"})
+    .then(r=>r.json())
+    .then(d=>{
+      if(my!==paneReq) return;
+      if(k==="st") renderStats(box,d,m);
+      else if(k==="ln") renderLineup(box,d,m);
+      else if(k==="ev") renderEvents(box,d,m);
+      else renderOdds(box,d,m);
+    })
+    .catch(()=>{ if(my===paneReq) box.innerHTML=`<div class="stats-none">${T.statNA}</div>`; });
+}
+
+// ---- статистика: усе, що віддає джерело, згруповане ----
 function renderStats(box,data,m){
-  const T=t();
+  const T=t(), L0=stl();
   if(!data||data.status!=="ok"){
-    const msg=data&&data.status==="pending"?T.statSoon:"";
-    box.innerHTML=msg?`<div class="stats-h">${T.statsTitle}</div><div class="stats-none">${msg}</div>`:"";
-    return;
+    box.innerHTML=`<div class="stats-none">${data&&data.status==="pending"?T.statSoon:T.statNA}</div>`; return;
   }
   let L=data.home,R=data.away;
   if(tokset(data.home.name)!==tokset(m.home.name)&&tokset(data.away.name)===tokset(m.home.name)){ L=data.away; R=data.home; }
   const ls=L.s||{}, rs=R.s||{};
-  const num=(v,dec)=> v==null?"–":(dec?(+v).toFixed(2):(typeof v==="number"?Math.round(v):v));
-  let rows="";
-  if(ls.possession!=null||rs.possession!=null){
-    const lp=Math.round((+ls.possession||0)*100), rp=Math.round((+rs.possession||0)*100);
-    rows+=`<div class="st-poss"><span>${lp}%</span><div class="st-bar"><i style="width:${lp}%"></i></div><span>${rp}%</span></div>
-           <div class="st-poss-lbl">${T.stLbl.possession}</div>`;
+  const fmt=(v,k)=>{
+    if(v==null) return "–";
+    if(ST_DEC.has(k)) return (+v).toFixed(2);
+    if(ST_PCT.has(k)) return Math.round(+v*100)+"%";
+    if(k==="passpct") return v+"%";
+    return typeof v==="number"?Math.round(v):v;
+  };
+  let html="";
+  if(ls.poss!=null||rs.poss!=null){
+    const lp=Math.round((+ls.poss||0)*100), rp=Math.round((+rs.poss||0)*100);
+    html+=`<div class="st-poss"><span>${lp}%</span><div class="st-bar"><i style="width:${lp}%"></i></div><span>${rp}%</span></div>
+           <div class="st-poss-lbl">${L0.poss}</div>`;
   }
-  for(const k of ["xg","sot","shots","bigch","corners","offsides","fouls"]){
-    if(ls[k]==null&&rs[k]==null) continue;
-    rows+=`<div class="st-row"><span class="st-l">${num(ls[k],k==="xg")}</span><span class="st-m">${T.stLbl[k]}</span><span class="st-r">${num(rs[k],k==="xg")}</span></div>`;
+  const cardTxt=sd=>{ const y=+sd.yellow||0,r=+sd.red||0; let o=""; if(y)o+=`🟨${y} `; if(r)o+=`🟥${r}`; return o.trim()||"–"; };
+  for(const [g,keys] of ST_GROUPS){
+    let rows="";
+    for(const k of keys){
+      if(k==="poss") continue;
+      if(k==="cards"){
+        if(ls.yellow||ls.red||rs.yellow||rs.red)
+          rows+=`<div class="st-row"><span class="st-l">${cardTxt(ls)}</span><span class="st-m">${L0.cards}</span><span class="st-r">${cardTxt(rs)}</span></div>`;
+        continue;
+      }
+      if(ls[k]==null&&rs[k]==null) continue;
+      rows+=`<div class="st-row${k==="passpct"?" acc":""}"><span class="st-l">${fmt(ls[k],k)}</span>`+
+            `<span class="st-m">${L0[k]||k}</span><span class="st-r">${fmt(rs[k],k)}</span></div>`;
+    }
+    if(rows) html+=`<div class="st-grp">${T.stGrp[g]}</div>`+rows;
   }
-  const card=s=>{ const y=+s.yellow||0,r=+s.red||0; let o=""; if(y)o+=`🟨${y} `; if(r)o+=`🟥${r}`; return o.trim()||"–"; };
-  if(ls.yellow||ls.red||rs.yellow||rs.red)
-    rows+=`<div class="st-row"><span class="st-l">${card(ls)}</span><span class="st-m">${T.stLbl.cards}</span><span class="st-r">${card(rs)}</span></div>`;
-  if(!rows){ box.innerHTML=""; return; }
-  box.innerHTML=`<div class="stats-h">${T.statsTitle}${data.final?"":` <span class="stats-live">${T.statLiveTag}</span>`}</div>${rows}`;
+  if(!html){ box.innerHTML=`<div class="stats-none">${T.statNA}</div>`; return; }
+  box.innerHTML=(data.final?"":`<div style="margin-bottom:6px"><span class="stats-live">${T.statLiveTag}</span></div>`)+html;
+}
+
+// ---- склади: намальоване поле за схемою ----
+const shortName=n=>{ const s=String(n||""); return s.length>18?s.slice(0,17)+"…":s; };
+function sideHtml(sd,cls,rev){
+  if(!sd||!sd.rows||!sd.rows.length) return "";
+  const rows=rev?[...sd.rows].reverse():sd.rows;
+  return `<div class="phalf">`+rows.map(row=>`<div class="pline">`+(row||[]).map(pl=>
+    `<div class="pl ${cls}"><span class="sh">${pl.num==null?"":pl.num}</span><span class="pn">${shortName(pl.name)}</span></div>`
+  ).join("")+`</div>`).join("")+`</div>`;
+}
+function teamLine(sd){
+  if(!sd) return "";
+  return `<div class="pteam"><img src="${sd.logo||""}" alt="">${sd.name||""}`+
+         (sd.formation?`<span class="frm">· ${sd.formation}</span>`:"")+`</div>`;
+}
+function subsHtml(T,a,b){
+  const one=sd=>!sd||!sd.subs||!sd.subs.length?"":
+    `<div><b>${sd.name} — ${T.subsLbl}</b>`+sd.subs.map(pl=>`<span>${pl.num==null?"":pl.num+" "}${shortName(pl.name)}</span>`).join(", ")+`</div>`;
+  const x=one(a)+one(b);
+  return x?`<div class="subs">${x}</div>`:"";
+}
+function renderLineup(box,d,m){
+  const T=t();
+  if(!d||d.status!=="ok"){
+    box.innerHTML=`<div class="stats-none">${d&&d.status==="pending"?T.lineNA:T.lineSoon}</div>`; return;
+  }
+  let H=d.home,A=d.away;
+  if(H&&A&&tokset(H.name)!==tokset(m.home.name)&&tokset(A.name)===tokset(m.home.name)){ const x=H; H=A; A=x; }
+  box.innerHTML=teamLine(H)+
+    `<div class="pitch">${sideHtml(H,"home",false)}${sideHtml(A,"away",true)}</div>`+
+    teamLine(A)+subsHtml(T,H,A);
+}
+
+// ---- події ----
+const EV_IC={"Goal":"⚽","Own Goal":"🥴","Penalty":"⚽","Missed Penalty":"❌","Yellow Card":"🟨",
+  "Red Card":"🟥","Substitution":"🔁","VAR Goal Confirmed":"📺","VAR Goal Cancelled":"📺",
+  "VAR Penalty":"📺","VAR Penalty Cancelled":"📺","VAR Goal Cancelled - Offside":"📺"};
+function renderEvents(box,d,m){
+  const T=t();
+  if(!d||d.status!=="ok"||!d.list||!d.list.length){
+    box.innerHTML=`<div class="stats-none">${d&&d.status==="notstarted"?T.evSoon:T.evNone}</div>`; return;
+  }
+  const html=d.list.map(e=>{
+    const home=tokset(e.team||"")===tokset(m.home.name);
+    const ic=EV_IC[e.type]||"•";
+    const sub=[e.assist?"↳ "+e.assist:"", e.out?"⟵ "+e.out:"", e.type==="Substitution"?"":""].filter(Boolean).join(" · ");
+    const who=`<div class="who">${e.player||""}${sub?`<small>${sub}</small>`:""}</div>`;
+    const mi=`<div class="mi">${e.time||""}'</div>`;
+    return home
+      ? `<div class="ev">${mi}<div class="ic">${ic}</div>${who}</div>`
+      : `<div class="ev away">${who}<div class="ic">${ic}</div>${mi}</div>`;
+  }).join("");
+  box.innerHTML=`<div class="evs">${html}</div>`;
+}
+
+// ---- коефіцієнти: 1X2 по букмекерах + тотал 2.5 + обидві заб'ють ----
+function renderOdds(box,d,m){
+  const T=t();
+  if(!d||d.status==="plan"){ box.innerHTML=`<div class="stats-none">${T.oddsPlan}</div>`; return; }
+  if(d.status==="closed"){ box.innerHTML=`<div class="stats-none">${T.oddsClosed}</div>`; return; }
+  if(d.status!=="ok"||!d.books||!d.books.length){ box.innerHTML=`<div class="stats-none">${T.oddsNone}</div>`; return; }
+  const books=d.books;
+  const best=(pick,i)=>Math.max(...books.map(b=>(b[pick]&&+b[pick][i])||0));
+  const cell=(v,pick,i)=>`<i class="${v&&+v===best(pick,i)?"best":""}">${v?(+v).toFixed(2):"–"}</i>`;
+  const rows=books.map(b=>
+    `<div class="odd-row"><span class="bk">${b.book}</span>`+
+    cell(b.r&&b.r[0],"r",0)+cell(b.r&&b.r[1],"r",1)+cell(b.r&&b.r[2],"r",2)+`</div>`).join("");
+  // додаткові ринки — одним рядком, найкращий кеф серед букмекерів
+  const extra=[];
+  const anyOu=books.some(b=>b.ou), anyBt=books.some(b=>b.btts);
+  if(anyOu) extra.push(`<div class="odd-x"><span>${T.odOu}</span>`+
+    `<i>${T.odOver} ${best("ou",0).toFixed(2)}</i><i>${T.odUnder} ${best("ou",1).toFixed(2)}</i></div>`);
+  if(anyBt) extra.push(`<div class="odd-x"><span>${T.odBtts}</span>`+
+    `<i>${T.odYes} ${best("btts",0).toFixed(2)}</i><i>${T.odNo} ${best("btts",1).toFixed(2)}</i></div>`);
+  box.innerHTML=
+    `<div class="odd-h"><span>${T.odBook}</span><span>1</span><span>X</span><span>2</span></div>`+
+    `<div class="odds">${rows}</div>`+
+    (extra.length?`<div class="odd-extra">${extra.join("")}</div>`:"")+
+    `<div class="odd-note">${T.odNote}</div>`;
 }
 
 // ================== календар ==================
@@ -940,21 +1281,21 @@ function show(v){
 }
 function applyStatic(){
   const T=t(), sep='<span class="sep">·</span>';
-  document.title=T.title;
+  document.title=T.lgTitle[LG]||T.title;
   document.documentElement.lang=lang;
-  document.getElementById("h1").textContent=T.h1;
-  document.getElementById("sub").textContent=T.sub;
+  document.getElementById("h1").textContent=T.lgH1[LG]||T.h1;
+  document.getElementById("sub").textContent=T.lgSub[LG]||T.sub;
   document.getElementById("tab-tb").textContent=T.tabTable;
   document.getElementById("tab-sc").textContent=T.tabSchedule;
   document.getElementById("tab-ko").textContent=T.tabKo;
-  document.getElementById("leg-tb").innerHTML=[`<span>${T.legTable}</span>`,`<span>${T.legClick}</span>`].join(sep);
+  document.getElementById("leg-tb").innerHTML=[`<span>${isCup()?T.legTable:T.legTableL}</span>`,`<span>${T.legClick}</span>`].join(sep);
   document.getElementById("leg-sc").innerHTML=[`<span>${T.legTime(tzLabel())}</span>`,
     `<span style="color:#ff7847">${T.legHeat}</span>`,`<span>${T.legCnt}</span>`,
     `<span style="color:var(--red)">${T.legLive}</span>`].join(sep);
   document.getElementById("leg-ko").innerHTML=[`<span>${T.legKo}</span>`,`<span>${T.legClick}</span>`].join(sep);
   document.querySelector("footer").textContent=T.footer;
   const upd=document.getElementById("upd"); if(upd&&!MATCHES.length) upd.textContent=T.loading;
-  buildLangSwitch(); setHeaderH();
+  buildLangSwitch(); renderLgTabs(); setHeaderH();
 }
 function buildLangSwitch(){
   const box=document.getElementById("lang"); box.innerHTML="";

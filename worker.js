@@ -1,20 +1,29 @@
-// Cloudflare Worker для Ліги чемпіонів 2026/27.
-// /fixtures  → усі матчі сезону (розклад + рахунок + статус) з кешу KV
-// /stats     → статистика матчу (Highlightly) з кешу KV; ліниво добирає за потреби
-// /event.ics → подія матчу як text/calendar (для webcal:// на iOS/macOS)
-// cron       → розумне опитування в межах безкоштовного ліміту (100/добу):
-//              повний список — рідко (2 запити), у день матчів — лише матчі цього дня (1 запит).
-// Решта      → статичні ассети (env.ASSETS).
+// Cloudflare Worker: Ліга чемпіонів + АПЛ + Ла Ліга.
+// /fixtures?league=  → матчі сезону однієї ліги (розклад + рахунок + статус) з кешу KV
+// /standings?league= → таблиця з джерела (авторитетний порядок і тай-брейки ліги)
+// /stats?id=&lg=     → статистика матчу (усі показники джерела) з кешу KV; ліниво добирає
+// /lineup?id=&lg=    → склади: схема, 11 по лініях, запасні
+// /events?id=&lg=    → голи, картки, заміни, VAR
+// /odds?id=&lg=      → прематч-коефіцієнти (на Basic джерело віддає 401)
+// /event.ics         → подія матчу як text/calendar (для webcal:// на iOS/macOS)
+// cron               → опитування в межах ліміту ПЛАНУ: ліміт і залишок читаємо
+//                      з заголовків джерела, тож після апгрейду інтервал стискається сам.
+// Решта              → статичні ассети (env.ASSETS).
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname === "/event.ics") return eventIcs(url);
-    if (url.pathname === "/fixtures")  return fixturesRoute(env);
-    if (url.pathname === "/stats")     return statsRoute(url, env);
-    if (url.pathname === "/tg/info")   return tgInfoRoute(env);
-    if (url.pathname === "/tg/auth")   return tgAuthRoute(request, env);
-    if (url.pathname === "/logout")    return logoutRoute();
-    if (url.pathname === "/rsvp")      return request.method === "POST" ? rsvpPost(request, env) : rsvpGet(request, env);
+    const p = url.pathname;
+    if (p === "/event.ics") return eventIcs(url);
+    if (p === "/fixtures")  return fixturesRoute(url, env);
+    if (p === "/standings") return standingsRoute(url, env);
+    if (p === "/stats")     return statsRoute(url, env);
+    if (p === "/lineup")    return lineupRoute(url, env);
+    if (p === "/events")    return eventsRoute(url, env);
+    if (p === "/odds")      return oddsRoute(url, env);
+    if (p === "/tg/info")   return tgInfoRoute(env);
+    if (p === "/tg/auth")   return tgAuthRoute(request, env);
+    if (p === "/logout")    return logoutRoute();
+    if (p === "/rsvp")      return request.method === "POST" ? rsvpPost(request, env) : rsvpGet(request, env);
     return env.ASSETS.fetch(request);
   },
   async scheduled(event, env, ctx) {
@@ -24,36 +33,53 @@ export default {
 
 // ===================== налаштування =====================
 const HL_BASE = "https://soccer.highlightly.net";
-const LEAGUE = 2486, SEASON = 2026;      // UEFA Champions League, сезон 2026/27
-const PAGE = 100;                        // максимум записів на сторінку в API
+const SEASON = 2026;
+const PAGE = 100;
 
-const DAILY_BUDGET = 90;                 // зі 100/добу лишаємо запас
-const LOW_BUDGET   = 25;                 // нижче цього — розріджуємо опитування
-const FULL_TTL     = 8 * 3600 * 1000;    // повний список сезону оновлюємо рідко
-const LIVE_MS      = 5 * 60 * 1000;      // у день матчів: оновлення рахунку
-const LOW_LIVE_MS  = 15 * 60 * 1000;     // те саме, коли бюджет на межі
-const MATCH_MS     = 150 * 60 * 1000;    // вікно «матч іде»
-const FINAL_MS     = 180 * 60 * 1000;    // після цього матч вважаємо завершеним
-const BACKFILL_MIN_BUDGET = 50;          // добір статистики — лише коли бюджету вдосталь
-const BACKFILL_PER_RUN = 2;              // не більше N доборів за прогін крона
+// реєстр ліг: усе, що відрізняє турнір, зібрано тут
+const LEAGUES = {
+  ucl:    { id: 2486,   kind: "cup",    prio: 1 },
+  apl:    { id: 33973,  kind: "league", prio: 2 },
+  laliga: { id: 119924, kind: "league", prio: 3 }
+};
+const CODES = Object.keys(LEAGUES);
+const DEFAULT_LG = "ucl";
+const lg = c => (LEAGUES[c] ? c : null);
 
-// основна сітка турніру: лігова фаза + плей-оф (кваліфікацію не показуємо)
+// назви раундів у джерела різні: у кубку «League Stage - 3», у чемпіонаті «Regular Season - 12»
 const LS_RE = /^League Stage - (\d+)$/i;
+const RS_RE = /^Regular Season - (\d+)$/i;
 const KO_ROUNDS = ["Round of 32", "Round of 16", "Quarter-finals", "Semi-finals", "Final"];
-const isMain = r => LS_RE.test(r || "") || KO_ROUNDS.includes(r || "");
+function isMain(code, r) {
+  r = r || "";
+  return LEAGUES[code].kind === "cup" ? (LS_RE.test(r) || KO_ROUNDS.includes(r)) : RS_RE.test(r);
+}
 
-// які показники залишаємо (за displayName у відповіді Highlightly)
+const FREE_FALLBACK = 90;                // скільки вважаємо доступним, поки не знаємо реального залишку
+const FULL_TTL   = 24 * 3600 * 1000;     // повний список сезону: домашні ліги майже не змінюються
+const STAND_TTL  = 3 * 3600 * 1000;      // таблиця з джерела
+const MATCH_MS   = 150 * 60 * 1000;      // вікно «матч іде»
+const FINAL_MS   = 180 * 60 * 1000;      // після цього матч вважаємо завершеним
+const ODDS_TTL   = 30 * 60 * 1000;       // прематч-коефіцієнти
+const BACKFILL_FREE = 2, BACKFILL_PAID = 8;
+
+// які показники залишаємо (за displayName у відповіді джерела) — усі, що воно віддає
 const WANT = {
-  "Possession": "possession",
-  "Expected Goals": "xg",
-  "Shots on target": "sot",
-  "Total shots": "shots", "Total Shots": "shots",
-  "Big Chances Created": "bigch",
-  "Corners": "corners",
-  "Offsides": "offsides",
-  "Fouls": "fouls",
-  "Yellow cards": "yellow",
-  "Red cards": "red"
+  "Possession": "poss",
+  "Expected Goals": "xg", "Expected Assists": "xa", "Big Chances Created": "bigch",
+  "Shots on target": "sot", "Shots off target": "soff", "Blocked shots": "sblock",
+  "Shots within penalty area": "sin", "Shots outside penalty area": "sout", "Shots accuracy": "sacc",
+  "Total passes": "pass", "Successful passes": "passok", "Failed passes": "passbad",
+  "Passes Own Half": "passown", "Passes Opposition Half": "passopp",
+  "Passes Into Final Third": "passf3", "Backward Passes": "passback",
+  "Long Passes": "lp", "Successful Long Passes": "lpok", "Key Passes": "keyp",
+  "Crosses": "cross", "Successful Crosses": "crossok", "Throw-Ins": "throw",
+  "Tackles": "tkl", "Successful Tackles": "tklok",
+  "Aerial Duels": "air", "Successful Aerial Duels": "airok",
+  "Dribbles": "drib", "Successful Dribbles": "dribok",
+  "Interceptions": "intc", "Clearances": "clr", "Goalkeeper saves": "saves", "Goal Kicks": "gk",
+  "Fouls": "fouls", "Free Kicks": "fk", "Offsides": "offsides",
+  "Yellow cards": "yellow", "Red cards": "red"
 };
 
 function json(obj, status = 200, cacheSec = 0) {
@@ -69,33 +95,43 @@ function json(obj, status = 200, cacheSec = 0) {
 const ymd = t => new Date(t).toISOString().slice(0, 10);
 const today = () => ymd(Date.now());
 
-// ===================== ключ + бюджет =====================
+// ===================== ключ + квота =====================
 // ключ працює і як звичайний Secret (рядок), і як прив'язка Secrets Store (об'єкт з .get())
 async function hlKey(env) {
   const b = env.HIGHLIGHTLY_KEY;
   if (!b) return null;
   return typeof b.get === "function" ? await b.get() : b;
 }
-// бюджет — за РЕАЛЬНИМ залишком з заголовка Highlightly, а не власним лічильником
-async function budgetLeft(env) {
-  const v = await env.UCL_KV.get("ucl:remaining", "json");
-  if (!v || v.d !== today()) return DAILY_BUDGET;
-  // застаріла або старого формату (без at) → дозволяємо пробний запит, щоб дізнатись реальний залишок
-  // (ламає дедлок, коли разовий 429 записав rem:0 і Worker перестав ходити до API)
-  if (!v.at || (Date.now() - v.at) > 15 * 60000) return DAILY_BUDGET;
-  return v.rem;
+// квота — за РЕАЛЬНИМИ заголовками джерела, а не власним лічильником
+async function quota(env) {
+  const v = await env.UCL_KV.get("hl:quota", "json");
+  if (!v || v.d !== today() || !v.at || (Date.now() - v.at) > 15 * 60000) {
+    // невідомо або застаріло → дозволяємо пробний запит (інакше разовий 429 замикає воркер назавжди)
+    return { rem: FREE_FALLBACK, lim: 100, paid: false, unknown: true };
+  }
+  return { rem: v.rem, lim: v.lim || 100, paid: (v.lim || 100) > 500 };
+}
+// пишемо квоту НЕ на кожен виклик: у KV безкоштовно лише 1000 записів на добу
+async function noteQuota(env, r) {
+  const rem = +r.headers.get("x-ratelimit-requests-remaining");
+  const lim = +r.headers.get("x-ratelimit-requests-limit");
+  if (!isFinite(rem)) return;
+  const prev = await env.UCL_KV.get("hl:quota", "json");
+  const old = !prev || prev.d !== today() || !prev.at;
+  if (old || (Date.now() - prev.at) > 5 * 60000 || Math.abs((prev.rem || 0) - rem) >= 10) {
+    await env.UCL_KV.put("hl:quota", JSON.stringify({
+      d: today(), rem, lim: isFinite(lim) && lim ? lim : ((prev && prev.lim) || 100), at: Date.now()
+    }), { expirationTtl: 172800 });
+  }
 }
 async function hlFetch(env, path) {
   const key = await hlKey(env);
-  if (!key) return null;
+  if (!key) return { ok: false, status: 0, data: null };
   try {
     const r = await fetch(HL_BASE + path, { headers: { "x-rapidapi-key": key } });
-    const rem = r.headers.get("x-ratelimit-requests-remaining");
-    if (rem != null) {
-      await env.UCL_KV.put("ucl:remaining", JSON.stringify({ d: today(), rem: +rem, at: Date.now() }), { expirationTtl: 172800 });
-    }
-    return r.ok ? await r.json() : null;
-  } catch (e) { return null; }
+    await noteQuota(env, r);
+    return { ok: r.ok, status: r.status, data: r.ok ? await r.json() : null };
+  } catch (e) { return { ok: false, status: 0, data: null }; }
 }
 
 // ===================== список матчів =====================
@@ -123,61 +159,111 @@ function mapMatch(m) {
   };
 }
 
-async function readList(env) {
-  const v = await env.UCL_KV.get("ucl:matches", "json");
-  return (v && v.v === 1 && Array.isArray(v.matches)) ? v : { v: 1, ts: 0, dayTs: 0, matches: [] };
+const kList  = c => `hl:${c}:matches`;
+const kStand = c => `hl:${c}:standings`;
+const kHave  = c => `hl:${c}:have`;          // що вже добрали (щоб не читати KV по кожному матчу)
+
+async function readList(env, code) {
+  const v = await env.UCL_KV.get(kList(code), "json");
+  return (v && v.v === 2 && Array.isArray(v.matches)) ? v : { v: 2, ts: 0, dayTs: 0, matches: [] };
 }
-async function writeList(env, rec) {
-  await env.UCL_KV.put("ucl:matches", JSON.stringify(rec));
+// пишемо лише коли щось справді змінилось — економія записів KV
+async function writeList(env, code, rec) {
+  const body = JSON.stringify(rec);
+  const prev = await env.UCL_KV.get(kList(code));
+  if (prev === body) return;
+  await env.UCL_KV.put(kList(code), body);
 }
 
-// повне перечитування сезону (2-3 запити) — рідко
-async function fullRefresh(env) {
-  // пагінація Highlightly нестабільна: один і той самий матч може прийти на двох сторінках,
-  // а інший — загубитись. Тому збираємо у Map за id (дедуплікація), а прогалини добере dayRefresh.
+// повне перечитування сезону (2-3 запити на лігу) — рідко
+async function fullRefresh(env, code) {
+  // пагінація джерела нестабільна: той самий матч може прийти на двох сторінках,
+  // а інший загубитись. Тому збираємо у Map за id, а прогалини добере dayRefresh.
   const seen = new Map();
   let offset = 0, total = Infinity;
   while (offset < total) {
-    if ((await budgetLeft(env)) <= 3) break;
-    const r = await hlFetch(env, `/matches?leagueId=${LEAGUE}&season=${SEASON}&limit=${PAGE}&offset=${offset}`);
-    if (!r || !Array.isArray(r.data)) break;
-    for (const it of r.data) if (it && it.id != null) seen.set(it.id, it);
-    total = (r.pagination && r.pagination.totalCount) || seen.size;
+    if ((await quota(env)).rem <= 3) break;
+    const r = await hlFetch(env, `/matches?leagueId=${LEAGUES[code].id}&season=${SEASON}&limit=${PAGE}&offset=${offset}`);
+    if (!r.ok || !Array.isArray(r.data && r.data.data)) break;
+    for (const it of r.data.data) if (it && it.id != null) seen.set(it.id, it);
+    total = (r.data.pagination && r.data.pagination.totalCount) || seen.size;
     offset += PAGE;
-    if (r.data.length < PAGE) break;
+    if (r.data.data.length < PAGE) break;
   }
   if (!seen.size) return null;
-  const matches = [...seen.values()].map(mapMatch).filter(m => isMain(m.round));
+  const matches = [...seen.values()].map(mapMatch).filter(m => isMain(code, m.round));
   if (!matches.length) return null;
-  const rec = { v: 1, ts: Date.now(), dayTs: Date.now(), matches };
-  await writeList(env, rec);
+  const rec = { v: 2, ts: Date.now(), dayTs: Date.now(), matches };
+  await writeList(env, code, rec);
   return rec;
 }
 
 // оновлення лише матчів конкретного дня (1 запит) — під час туру
-async function dayRefresh(env, day) {
-  const r = await hlFetch(env, `/matches?leagueId=${LEAGUE}&season=${SEASON}&date=${day}&limit=${PAGE}`);
-  if (!r || !Array.isArray(r.data)) return null;
-  const fresh = r.data.map(mapMatch).filter(m => isMain(m.round));
-  const rec = await readList(env);
+async function dayRefresh(env, code, day) {
+  const r = await hlFetch(env, `/matches?leagueId=${LEAGUES[code].id}&season=${SEASON}&date=${day}&limit=${PAGE}`);
+  if (!r.ok || !Array.isArray(r.data && r.data.data)) return null;
+  const fresh = r.data.data.map(mapMatch).filter(m => isMain(code, m.round));
+  const rec = await readList(env, code);
   const byId = new Map(rec.matches.map(m => [m.id, m]));
   for (const f of fresh) byId.set(f.id, Object.assign(byId.get(f.id) || {}, f));
   rec.matches = [...byId.values()];
   rec.dayTs = Date.now();
-  await writeList(env, rec);
+  await writeList(env, code, rec);
   return rec;
 }
 
-// список для клієнта (з самолікуванням, якщо кеш порожній)
-async function getList(env) {
-  let rec = await readList(env);
-  if (!rec.matches.length && (await budgetLeft(env)) > 3) rec = (await fullRefresh(env)) || rec;
+async function getList(env, code) {
+  let rec = await readList(env, code);
+  if (!rec.matches.length && (await quota(env)).rem > 3) rec = (await fullRefresh(env, code)) || rec;
   return rec;
 }
 
-async function fixturesRoute(env) {
-  const rec = await getList(env);
-  return json({ season: SEASON, updated: rec.dayTs || rec.ts, matches: rec.matches }, 200, 30);
+function pickLg(url) { return lg(url.searchParams.get("league") || url.searchParams.get("lg")) || DEFAULT_LG; }
+
+async function fixturesRoute(url, env) {
+  const code = pickLg(url);
+  const rec = await getList(env, code);
+  return json({
+    league: code, kind: LEAGUES[code].kind, season: SEASON,
+    updated: rec.dayTs || rec.ts, matches: rec.matches
+  }, 200, 30);
+}
+
+// знайти матч, не читаючи всі ліги: клієнт передає свою лігу в ?lg=
+async function findMatch(env, url) {
+  const code = pickLg(url);
+  const id = url.searchParams.get("id");
+  if (!id) return { code, m: null };
+  const rec = await readList(env, code);
+  return { code, m: rec.matches.find(x => String(x.id) === String(id)) || null };
+}
+
+// ===================== таблиця з джерела =====================
+// авторитетний порядок: у Ла Лізі перший тай-брейк — особисті зустрічі, самі ми так не порахуємо
+async function fetchStandings(env, code) {
+  const r = await hlFetch(env, `/standings?leagueId=${LEAGUES[code].id}&season=${SEASON}`);
+  const groups = r.ok && r.data && Array.isArray(r.data.groups) ? r.data.groups : null;
+  if (!groups) return null;
+  const rec = {
+    at: Date.now(),
+    groups: groups.map(g => ({
+      name: g.name || "",
+      rows: (g.standings || []).map(s => ({
+        pos: s.position, pts: s.points,
+        team: { id: (s.team || {}).id, name: (s.team || {}).name, logo: (s.team || {}).logo },
+        t: s.total || {}, h: s.home || {}, a: s.away || {}
+      }))
+    }))
+  };
+  await env.UCL_KV.put(kStand(code), JSON.stringify(rec), { expirationTtl: 172800 });
+  return rec;
+}
+async function standingsRoute(url, env) {
+  const code = pickLg(url);
+  let rec = await env.UCL_KV.get(kStand(code), "json");
+  if (!rec && (await quota(env)).rem > 3) rec = await fetchStandings(env, code);
+  if (!rec) return json({ status: "none" }, 200, 60);
+  return json({ status: "ok", league: code, at: rec.at, groups: rec.groups }, 200, 120);
 }
 
 // ===================== статистика =====================
@@ -187,31 +273,33 @@ function extractSide(arr) {
     const key = WANT[s.displayName || s.type];
     if (key && o[key] === undefined) o[key] = s.value;
   }
+  // похідні: «усіх ударів» джерело не віддає, лише у створ / мимо / заблоковані
+  const n = v => (v == null ? null : +v);
+  const parts = [n(o.sot), n(o.soff), n(o.sblock)].filter(v => v != null);
+  if (parts.length) o.shots = parts.reduce((a, b) => a + b, 0);
+  if (n(o.pass) && n(o.passok) != null) o.passpct = Math.round(100 * o.passok / o.pass);
   return o;
 }
 async function fetchStats(env, m, isFinal) {
   const r = await hlFetch(env, `/statistics/${m.id}`);
-  if (!Array.isArray(r) || r.length < 2) return null;
+  const arr = r.data;
+  if (!Array.isArray(arr) || arr.length < 2) return null;
   const rec = {
-    updated: Date.now(), final: !!isFinal,
-    home: { name: (r[0].team || {}).name, s: extractSide(r[0].statistics) },
-    away: { name: (r[1].team || {}).name, s: extractSide(r[1].statistics) }
+    v: 2, updated: Date.now(), final: !!isFinal,
+    home: { name: (arr[0].team || {}).name, s: extractSide(arr[0].statistics) },
+    away: { name: (arr[1].team || {}).name, s: extractSide(arr[1].statistics) }
   };
-  await env.UCL_KV.put("ucl:stats:" + m.id, JSON.stringify(rec)); // без TTL = вічна історія
+  await env.UCL_KV.put("hl:stats:" + m.id, JSON.stringify(rec));   // без TTL = вічна історія
   return rec;
 }
-
 async function statsRoute(url, env) {
-  const id = url.searchParams.get("id");
-  if (!id) return json({ error: "bad-params" }, 400);
-  const rec0 = await readList(env);
-  const m = rec0.matches.find(x => String(x.id) === String(id));
+  const { m } = await findMatch(env, url);
   if (!m) return json({ status: "no-match" }, 200, 300);
-  let rec = await env.UCL_KV.get("ucl:stats:" + m.id, "json");
+  let rec = await env.UCL_KV.get("hl:stats:" + m.id, "json");
+  if (rec && rec.v !== 2) rec = null;                              // старий формат — перечитаємо
   const now = Date.now(), started = m.ts && now >= m.ts;
-  // лінивий добір: не було зовсім / застаріле під час гри / завершено-але-не-фінал
   if (started && (!rec || (!rec.final && (now - rec.updated) > 120000))) {
-    if ((await budgetLeft(env)) > 3) {
+    if ((await quota(env)).rem > 3) {
       const fresh = await fetchStats(env, m, now >= m.ts + FINAL_MS);
       if (fresh) rec = fresh;
     }
@@ -220,34 +308,208 @@ async function statsRoute(url, env) {
   return json({ status: "ok", matchId: m.id, final: rec.final, updated: rec.updated, home: rec.home, away: rec.away }, 200, 60);
 }
 
-// ===================== фонове опитування (cron кожні 3 хв) =====================
+// ===================== склади =====================
+function mapPlayer(p) {
+  return { id: p.id, name: p.name, num: p.number, pos: p.position };
+}
+function mapSide(t) {
+  if (!t) return null;
+  return {
+    name: t.name, logo: t.logo, formation: t.formation || "",
+    rows: (t.initialLineup || []).map(row => (row || []).map(mapPlayer)),
+    subs: (t.substitutes || []).map(mapPlayer)
+  };
+}
+async function fetchLineup(env, m) {
+  const r = await hlFetch(env, `/lineups/${m.id}`);
+  const d = r.data;
+  if (!d || (!d.homeTeam && !d.awayTeam)) return null;
+  const rec = { v: 1, at: Date.now(), home: mapSide(d.homeTeam), away: mapSide(d.awayTeam) };
+  if (!rec.home && !rec.away) return null;
+  await env.UCL_KV.put("hl:lineup:" + m.id, JSON.stringify(rec));  // без TTL
+  return rec;
+}
+async function lineupRoute(url, env) {
+  const { m } = await findMatch(env, url);
+  if (!m) return json({ status: "no-match" }, 200, 300);
+  let rec = await env.UCL_KV.get("hl:lineup:" + m.id, "json");
+  const now = Date.now();
+  // джерело відкриває склади за 40 хв до початку; після матчу вони лишаються доступними
+  const open = m.ts && now >= m.ts - 45 * 60000;
+  if (!rec && open && (await quota(env)).rem > 3) rec = await fetchLineup(env, m);
+  if (!rec) return json({ status: open ? "pending" : "notstarted" }, 200, 120);
+  return json({ status: "ok", at: rec.at, home: rec.home, away: rec.away }, 200, 300);
+}
+
+// ===================== події матчу =====================
+async function fetchEvents(env, m, isFinal) {
+  const r = await hlFetch(env, `/events/${m.id}`);
+  if (!Array.isArray(r.data)) return null;
+  const rec = {
+    v: 1, at: Date.now(), final: !!isFinal,
+    list: r.data.map(e => ({
+      time: e.time, type: e.type, player: e.player, assist: e.assist,
+      out: e.substituted || null, team: (e.team || {}).name
+    }))
+  };
+  await env.UCL_KV.put("hl:events:" + m.id, JSON.stringify(rec));  // без TTL
+  return rec;
+}
+async function eventsRoute(url, env) {
+  const { m } = await findMatch(env, url);
+  if (!m) return json({ status: "no-match" }, 200, 300);
+  let rec = await env.UCL_KV.get("hl:events:" + m.id, "json");
+  const now = Date.now(), started = m.ts && now >= m.ts;
+  if (started && (!rec || (!rec.final && (now - rec.at) > 60000))) {
+    if ((await quota(env)).rem > 3) {
+      const fresh = await fetchEvents(env, m, now >= m.ts + FINAL_MS);
+      if (fresh) rec = fresh;
+    }
+  }
+  if (!rec) return json({ status: started ? "pending" : "notstarted" }, 200, 60);
+  return json({ status: "ok", final: rec.final, at: rec.at, list: rec.list }, 200, 60);
+}
+
+// ===================== коефіцієнти =====================
+// на безкоштовному плані джерело віддає 401 — запам'ятовуємо це на 6 годин,
+// щоб не витрачати квоту на завідомо недоступний ендпойнт
+// форма відповіді: data[].odds[] — по одному рядку на (букмекер × ринок),
+// назва букмекера саме там. Беремо три ринки, які має сенс показувати в барі.
+const OD_1X2  = /^full time result$/i;
+const OD_OU   = /^total goals 2\.5$/i;
+const OD_BTTS = /^both teams to score$/i;
+function mapOdds(entries) {
+  const by = new Map();
+  for (const e of entries) {
+    for (const o of (e.odds || [])) {
+      const bk = o.bookmakerName || "", mk = o.market || "";
+      if (!bk) continue;
+      const kind = OD_1X2.test(mk) ? "r" : OD_OU.test(mk) ? "ou" : OD_BTTS.test(mk) ? "btts" : null;
+      if (!kind) continue;
+      if (!by.has(bk)) by.set(bk, { book: bk });
+      const rec = by.get(bk);
+      const val = re => {
+        const v = (o.values || []).find(x => re.test(String(x.value || "")));
+        return v ? +v.odd : null;
+      };
+      if (kind === "r")    rec.r = [val(/^home$/i), val(/^draw$/i), val(/^away$/i)];
+      if (kind === "ou")   rec.ou = [val(/^over$/i), val(/^under$/i)];
+      if (kind === "btts") rec.btts = [val(/^yes$/i), val(/^no$/i)];
+    }
+  }
+  const books = [...by.values()].filter(b => b.r && b.r.some(Boolean));
+  // спершу ті, у кого є всі три ринки — щоб рядки не були напівпорожні
+  books.sort((a, b) => ((b.ou ? 1 : 0) + (b.btts ? 1 : 0)) - ((a.ou ? 1 : 0) + (a.btts ? 1 : 0)));
+  return books.slice(0, 6);
+}
+async function fetchOdds(env, m) {
+  const r = await hlFetch(env, `/odds?matchId=${m.id}&oddsType=prematch&limit=5`);
+  if (r.status === 401 || r.status === 403) {
+    await env.UCL_KV.put("hl:odds:off", "1", { expirationTtl: 3600 });
+    return { plan: true };
+  }
+  const entries = (r.data && Array.isArray(r.data.data)) ? r.data.data : (Array.isArray(r.data) ? r.data : null);
+  if (!entries || !entries.length) return null;
+  const books = mapOdds(entries);
+  if (!books.length) return null;
+  const rec = { v: 2, at: Date.now(), books };
+  await env.UCL_KV.put("hl:odds:" + m.id, JSON.stringify(rec), { expirationTtl: 7 * 86400 });
+  return rec;
+}
+async function oddsRoute(url, env) {
+  const { m } = await findMatch(env, url);
+  if (!m) return json({ status: "no-match" }, 200, 300);
+  if (await env.UCL_KV.get("hl:odds:off")) return json({ status: "plan" }, 200, 300);
+  let rec = await env.UCL_KV.get("hl:odds:" + m.id, "json");
+  if (rec && rec.v !== 2) rec = null;
+  const now = Date.now();
+  const pre = m.ts && now < m.ts;                                  // коефіцієнти цікаві до початку
+  if (pre && (!rec || (now - rec.at) > ODDS_TTL) && (await quota(env)).rem > 3) {
+    const fresh = await fetchOdds(env, m);
+    if (fresh && fresh.plan) return json({ status: "plan" }, 200, 300);
+    if (fresh) rec = fresh;
+  }
+  if (!rec) return json({ status: pre ? "none" : "closed" }, 200, 120);
+  return json({ status: "ok", at: rec.at, books: rec.books }, 200, 120);
+}
+
+// ===================== фонове опитування =====================
+const inWindow = (m, now) => m.ts && now >= m.ts && now < m.ts + MATCH_MS;
+const finished = (m, now) => m.ts && now >= m.ts + FINAL_MS;
+
+function liveInterval(q, nLive) {
+  if (q.paid) return 3 * 60 * 1000;                  // частіше не має сенсу: крон і так раз на 3 хв
+  if (q.rem < 25) return 20 * 60 * 1000;             // бюджет на межі — розріджуємо
+  return Math.min(20 * 60 * 1000, 5 * 60 * 1000 * Math.max(1, nLive));
+}
+
 async function poll(env) {
   const now = Date.now();
-  let rec = await readList(env);
+  const q = await quota(env);
+  if (q.rem <= 3) return;
 
-  // 1) повний список — якщо порожній або застарів
-  if (!rec.matches.length || (now - rec.ts) > FULL_TTL) {
-    if ((await budgetLeft(env)) > 5) await fullRefresh(env);
+  // 1) списки сезонів — по одній лізі за прогін, щоб не вигребти квоту за раз
+  for (const code of CODES) {
+    const rec = await readList(env, code);
+    if (!rec.matches.length || (now - rec.ts) > FULL_TTL) {
+      if (q.rem > 6) await fullRefresh(env, code);
+      return;
+    }
+  }
+
+  // 2) живі дні — по одному запиту на лігу, у якої зараз ідуть матчі
+  const live = [];
+  for (const code of CODES) {
+    const rec = await readList(env, code);
+    if (rec.matches.some(m => inWindow(m, now))) live.push([code, rec]);
+  }
+  if (live.length) {
+    const iv = liveInterval(q, live.length);
+    let spent = 0;
+    for (const [code, rec] of live) {
+      if (q.rem - spent <= 3) break;
+      if ((now - (rec.dayTs || 0)) >= iv) { await dayRefresh(env, code, ymd(now)); spent++; }
+    }
+    await backfill(env, q, q.paid ? 3 : 1);          // під час матчів — лише трохи
     return;
   }
-  // 2) якщо просто зараз ідуть матчі — оновлюємо тільки сьогоднішній день (1 запит)
-  const live = rec.matches.some(m => m.ts && now >= m.ts && now < m.ts + MATCH_MS);
-  if (live) {
-    const budget = await budgetLeft(env);
-    const iv = budget < LOW_BUDGET ? LOW_LIVE_MS : LIVE_MS;
-    if (budget > 3 && (now - (rec.dayTs || 0)) >= iv) await dayRefresh(env, ymd(now));
-    return;
+
+  // 3) тиша — таблиці і добір статистики/подій/складів
+  for (const code of CODES) {
+    const st = await env.UCL_KV.get(kStand(code), "json");
+    if (!st || (now - st.at) > STAND_TTL) {
+      if (q.rem > 10) await fetchStandings(env, code);
+      break;                                          // одна ліга за прогін
+    }
   }
-  // 3) тиша — потроху добираємо статистику зіграних матчів (лише коли бюджету вдосталь)
-  if ((await budgetLeft(env)) < BACKFILL_MIN_BUDGET) return;
-  let done = 0;
-  for (const m of rec.matches) {
-    if (done >= BACKFILL_PER_RUN) break;
-    if (!m.ts || now < m.ts + FINAL_MS) continue;          // ще не завершився
-    const has = await env.UCL_KV.get("ucl:stats:" + m.id, "json");
-    if (has && has.final) continue;
-    await fetchStats(env, m, true);
-    done++;
+  await backfill(env, q, q.paid ? BACKFILL_PAID : BACKFILL_FREE);
+}
+
+// добір по зіграних матчах: статистика → події → склади.
+// що вже взяли, тримаємо в одному ключі на лігу, щоб не читати KV на кожен матч
+async function backfill(env, q, budget) {
+  if (budget <= 0 || q.rem < (q.paid ? 50 : 45)) return;
+  const now = Date.now();
+  let left = budget;
+  // чергуємо, з якої ліги починати, інакше ЛЧ з'їдає весь добір, а АПЛ чекає добу
+  const off = Math.floor(now / 180000) % CODES.length;
+  const order = CODES.slice(off).concat(CODES.slice(0, off));
+  for (const code of order) {
+    if (left <= 0) break;
+    const rec = await readList(env, code);
+    const have = (await env.UCL_KV.get(kHave(code), "json")) || {};
+    let changed = false;
+    const done = rec.matches.filter(m => finished(m, now)).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    for (const m of done) {
+      if (left <= 0) break;
+      const f = have[m.id] || "";
+      if (f === "x" || (f.includes("s") && f.includes("e") && f.includes("l"))) continue;
+      if (!f.includes("s")) { if (await fetchStats(env, m, true))  { have[m.id] = f + "s"; changed = true; left--; continue; } }
+      if (!f.includes("e")) { if (await fetchEvents(env, m, true)) { have[m.id] = f + "e"; changed = true; left--; continue; } }
+      if (!f.includes("l")) { if (await fetchLineup(env, m))       { have[m.id] = f + "l"; changed = true; left--; continue; } }
+      if (!f) { have[m.id] = "x"; changed = true; }    // джерело нічого не дало — більше не сіпаємось
+    }
+    if (changed) await env.UCL_KV.put(kHave(code), JSON.stringify(have), { expirationTtl: 400 * 86400 });
   }
 }
 
